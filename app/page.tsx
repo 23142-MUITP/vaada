@@ -1,65 +1,299 @@
-import Image from "next/image";
+import IndiaMap from "./IndiaMap";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main style={{
+      fontFamily: "'DM Sans', sans-serif",
+      background: "#0D1B3E",
+      color: "white",
+      minHeight: "100vh",
+      margin: 0,
+      padding: 0,
+    }}>
+
+      {/* NAV */}
+      <nav style={{
+        padding: "20px 60px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderBottom: "1px solid rgba(255,107,0,0.15)",
+        background: "rgba(13,27,62,0.95)",
+      }}>
+        <div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "900", color: "#FF6B00" }}>Vaada</div>
+          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", letterSpacing: "3px" }}>INDIA PROMISE TRACKER</div>
+        </div>
+        <div style={{ display: "flex", gap: "36px", alignItems: "center" }}>
+          {["Politicians", "Promises", "By State", "By Party"].map(link => (
+            <a key={link} href="#" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none", fontSize: "14px" }}>{link}</a>
+          ))}
+          <a href="#" style={{ background: "#FF6B00", color: "white", padding: "10px 24px", borderRadius: "6px", fontSize: "14px", fontWeight: "600", textDecoration: "none" }}>Suggest a Promise</a>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section style={{
+        padding: "70px 60px 60px",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        alignItems: "center",
+        justifyItems: "center",
+        gap: "40px",
+        background: "radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%)",
+        overflow: "hidden",
+      }}>
+
+        {/* LEFT */}
+        <div style={{ width: "100%", maxWidth: "560px", justifySelf: "start" as const }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: "8px",
+            background: "rgba(255,107,0,0.12)", border: "1px solid rgba(255,107,0,0.3)",
+            padding: "6px 16px", borderRadius: "100px", marginBottom: "28px",
+            fontSize: "12px", fontWeight: "600", letterSpacing: "1.5px", color: "#FF6B00"
+          }}>
+            By the people, for the people
+          </div>
+
+          <h1 style={{ fontFamily: "Georgia, serif", fontSize: "72px", fontWeight: "900", lineHeight: "1.0", letterSpacing: "-2px", margin: "0 0 24px 0" }}>
+            <span style={{ display: "block" }}>Vaada kiya tha.</span>
+            <span style={{ display: "block", color: "#FF6B00" }}>Nibhaya kya?</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p style={{ fontSize: "17px", lineHeight: "1.7", color: "rgba(255,255,255,0.55)", maxWidth: "460px", fontWeight: "300", margin: "0 0 36px 0" }}>
+            India's first comprehensive politician accountability platform. Track promises made by every politician - from your local corporator to the Prime Minister.
           </p>
+
+          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+            <a href="#" style={{ background: "#FF6B00", color: "white", padding: "14px 32px", borderRadius: "8px", fontSize: "15px", fontWeight: "600", textDecoration: "none", boxShadow: "0 4px 24px rgba(255,107,0,0.35)" }}>Search a Politician</a>
+            <a href="#" style={{ color: "rgba(255,255,255,0.65)", fontSize: "15px", textDecoration: "none" }}>How it works -&gt;</a>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* RIGHT - MAP */}
+        <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: "0px", width: "100%", justifySelf: "center" as const }}>
+
+          {/* Top label */}
+          <div style={{ textAlign: "center" as const, marginBottom: "18px", width: "100%" }}>
+            <div style={{
+              fontSize: "15px",
+              fontWeight: "800",
+              letterSpacing: "5px",
+              color: "#FF6B00",
+              textTransform: "uppercase" as const,
+            }}>
+              Every State. Every Promise.
+            </div>
+            <div style={{
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.45)",
+              fontStyle: "italic",
+              marginTop: "8px",
+              letterSpacing: "0.5px",
+            }}>
+              28 states. 8 union territories. Zero accountability - until now.
+            </div>
+          </div>
+
+          {/* Map container */}
+          <div style={{ width: "340px", height: "400px", overflow: "hidden", margin: "0 auto" }}>
+            <IndiaMap />
+          </div>
+
+          {/* Bottom label */}
+          <div style={{ textAlign: "center" as const, marginTop: "18px", width: "100%" }}>
+            <div style={{
+              fontSize: "18px",
+              color: "rgba(255,255,255,0.6)",
+              letterSpacing: "3px",
+              fontFamily: "Georgia, serif",
+            }}>
+              जनता जानना चाहती है
+            </div>
+            <div style={{
+              fontSize: "12px",
+              color: "#FF6B00",
+              letterSpacing: "4px",
+              marginTop: "8px",
+              textTransform: "uppercase" as const,
+              fontWeight: "700",
+            }}>
+              The Public Wants to Know
+            </div>
+          </div>
+
         </div>
-      </main>
-    </div>
+
+        {/* STATS BAR */}
+        <div style={{
+          gridColumn: "1 / -1",
+          display: "grid", gridTemplateColumns: "repeat(5, 1fr)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "16px", overflow: "hidden",
+          background: "rgba(255,255,255,0.03)",
+        }}>
+          {[
+            { num: "4,200+", label: "Politicians tracked", color: "#FF6B00" },
+            { num: "18,000+", label: "Promises recorded", color: "#FF6B00" },
+            { num: "34%", label: "Promises kept", color: "#12A854" },
+            { num: "28%", label: "In progress", color: "#F59E0B" },
+            { num: "38%", label: "Broken / Abandoned", color: "#EF4444" },
+          ].map((stat, i) => (
+            <div key={i} style={{ padding: "24px 28px", borderRight: i < 4 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "38px", fontWeight: "700", color: stat.color }}>{stat.num}</div>
+              <div style={{ marginTop: "6px", fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SEARCH */}
+      <section style={{ padding: "100px 60px", background: "#FFF8F0" }}>
+        <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#FF6B00", marginBottom: "16px" }}>Find Your Neta</div>
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "48px", fontWeight: "700", color: "#0D1B3E", marginBottom: "48px", letterSpacing: "-1px" }}>
+          Search any politician<br />across India
+        </h2>
+        <div style={{ display: "flex", maxWidth: "680px", background: "white", borderRadius: "12px", border: "2px solid rgba(13,27,62,0.12)", overflow: "hidden", boxShadow: "0 4px 40px rgba(0,0,0,0.08)" }}>
+          <input type="text" placeholder="Search by name, party, state or constituency..." style={{ flex: 1, padding: "18px 24px", border: "none", outline: "none", fontSize: "16px", fontFamily: "inherit", color: "#0D1B3E" }} />
+          <button style={{ background: "#FF6B00", color: "white", border: "none", padding: "0 32px", fontSize: "15px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Search</button>
+        </div>
+        <div style={{ marginTop: "20px", display: "flex", gap: "12px", flexWrap: "wrap" as const }}>
+          {["All", "National", "State", "Local", "BJP", "INC", "AAP", "SP", "TMC"].map(f => (
+            <div key={f} style={{ padding: "8px 18px", borderRadius: "100px", background: f === "All" ? "#FF6B00" : "white", color: f === "All" ? "white" : "#0D1B3E", border: "1.5px solid", borderColor: f === "All" ? "#FF6B00" : "rgba(13,27,62,0.12)", fontSize: "13px", fontWeight: "500", cursor: "pointer" }}>{f}</div>
+          ))}
+        </div>
+      </section>
+
+      {/* POLITICIAN CARDS */}
+      <section style={{ padding: "0 60px 100px", background: "#FFF8F0" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }}>
+          {[
+            { initials: "NM", name: "Narendra Modi", role: "Prime Minister of India", party: "BJP", kept: 42, progress: 25, broken: 33, total: 24 },
+            { initials: "AK", name: "Arvind Kejriwal", role: "Former CM, Delhi", party: "AAP", kept: 61, progress: 22, broken: 17, total: 18 },
+            { initials: "RG", name: "Rahul Gandhi", role: "Leader of Opposition", party: "INC", kept: 25, progress: 42, broken: 33, total: 12 },
+            { initials: "YA", name: "Yogi Adityanath", role: "Chief Minister, Uttar Pradesh", party: "BJP", kept: 35, progress: 40, broken: 25, total: 20 },
+            { initials: "MB", name: "Mamata Banerjee", role: "Chief Minister, West Bengal", party: "TMC", kept: 50, progress: 25, broken: 25, total: 16 },
+          ].map((p, i) => (
+            <div key={i} style={{ background: "white", borderRadius: "16px", padding: "28px", border: "1.5px solid rgba(13,27,62,0.06)", cursor: "pointer" }}>
+              <div style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
+                <div style={{ width: "64px", height: "64px", borderRadius: "12px", flexShrink: 0, background: "linear-gradient(135deg, #FF6B00, #0D1B3E)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "700", color: "white", fontFamily: "Georgia, serif" }}>{p.initials}</div>
+                <div>
+                  <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", fontWeight: "700", color: "#0D1B3E" }}>{p.name}</div>
+                  <div style={{ fontSize: "13px", color: "#8A8FA8", marginTop: "4px" }}>{p.role}</div>
+                  <div style={{ display: "inline-block", marginTop: "8px", padding: "3px 10px", borderRadius: "100px", background: "rgba(255,107,0,0.1)", color: "#FF6B00", fontSize: "11px", fontWeight: "700" }}>{p.party}</div>
+                </div>
+              </div>
+              <div style={{ marginBottom: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#8A8FA8" }}>Promise Scorecard</span>
+                  <strong style={{ fontSize: "12px", color: "#0D1B3E" }}>{p.total} promises tracked</strong>
+                </div>
+                <div style={{ height: "8px", borderRadius: "100px", background: "#F4F4F8", overflow: "hidden", display: "flex" }}>
+                  <div style={{ width: `${p.kept}%`, background: "#12A854" }}></div>
+                  <div style={{ width: `${p.progress}%`, background: "#F59E0B" }}></div>
+                  <div style={{ width: `${p.broken}%`, background: "#EF4444" }}></div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "16px" }}>
+                {[
+                  { color: "#12A854", label: "Kept", val: Math.round(p.total * p.kept / 100) },
+                  { color: "#F59E0B", label: "In Progress", val: Math.round(p.total * p.progress / 100) },
+                  { color: "#EF4444", label: "Broken", val: Math.round(p.total * p.broken / 100) },
+                ].map(c => (
+                  <div key={c.label} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#8A8FA8" }}>
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: c.color }}></div>
+                    <strong style={{ color: "#0D1B3E" }}>{c.val}</strong> {c.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div style={{ background: "rgba(255,107,0,0.04)", borderRadius: "16px", border: "2px dashed rgba(255,107,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", cursor: "pointer" }}>
+            <div style={{ textAlign: "center" as const }}>
+              <div style={{ fontSize: "36px", marginBottom: "12px" }}>+</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#0D1B3E", marginBottom: "8px" }}>49+ Politicians</div>
+              <div style={{ fontSize: "13px", color: "#8A8FA8", marginBottom: "16px" }}>More being added every day</div>
+              <a href="#" style={{ color: "#FF6B00", fontWeight: "600", fontSize: "14px", textDecoration: "none" }}>View all -&gt;</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section style={{ padding: "100px 60px", background: "#0D1B3E" }}>
+        <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#FF6B00", marginBottom: "16px" }}>What Vaada Tracks</div>
+        <h2 style={{ fontFamily: "Georgia, serif", fontSize: "48px", fontWeight: "700", color: "white", marginBottom: "60px", letterSpacing: "-1px" }}>
+          Everything about your<br />elected representative
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
+          {[
+            { icon: "📋", title: "Promise Tracking", desc: "Every promise made in manifestos, speeches and press conferences - tracked with evidence, sources and current status.", soon: false },
+            { icon: "⚖️", title: "Criminal Cases and FIRs", desc: "Data sourced from ADR and Election Commission affidavits. Know exactly how many cases are filed against your neta.", soon: true },
+            { icon: "₹", title: "Asset Declaration", desc: "Track how politician wealth changes election to election. All data from official EC affidavits.", soon: true },
+            { icon: "📍", title: "Constituency Work", desc: "What has your MP or MLA actually done for your area? Development funds, projects, attendance in Parliament.", soon: true },
+            { icon: "📊", title: "Party Comparison", desc: "Which party keeps more promises? Compare BJP vs INC vs AAP vs regional parties on a level playing field.", soon: false },
+            { icon: "🤝", title: "Community Reporting", desc: "Citizens can submit promises we have missed, flag incorrect data, and help keep Vaada accurate.", soon: false },
+          ].map((f, i) => (
+            <div key={i} style={{ padding: "36px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+              <div style={{ fontSize: "36px", marginBottom: "20px" }}>{f.icon}</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: "700", marginBottom: "12px", color: "white" }}>{f.title}</div>
+              <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)", lineHeight: "1.7" }}>{f.desc}</div>
+              {f.soon && <div style={{ display: "inline-block", marginTop: "16px", fontSize: "11px", fontWeight: "700", letterSpacing: "1px", textTransform: "uppercase" as const, color: "#FF6B00", opacity: 0.7 }}>Coming Soon</div>}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* COMMUNITY */}
+      <section style={{ padding: "100px 60px", background: "#FFF8F0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#FF6B00", marginBottom: "16px" }}>Community</div>
+          <h2 style={{ fontFamily: "Georgia, serif", fontSize: "48px", fontWeight: "700", color: "#0D1B3E", marginBottom: "20px", letterSpacing: "-1px" }}>
+            You are the<br />fact-checker
+          </h2>
+          <p style={{ fontSize: "16px", color: "rgba(13,27,62,0.55)", lineHeight: "1.8", marginBottom: "36px" }}>
+            Vaada is built by citizens, for citizens. If you know of a promise we have missed, a status that has changed, or a politician we have not added - tell us. Every suggestion is reviewed and added.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: "16px" }}>
+            <input style={{ padding: "14px 18px", borderRadius: "10px", border: "1.5px solid rgba(13,27,62,0.12)", fontSize: "15px", fontFamily: "inherit", color: "#0D1B3E", outline: "none" }} placeholder="Politician name" />
+            <input style={{ padding: "14px 18px", borderRadius: "10px", border: "1.5px solid rgba(13,27,62,0.12)", fontSize: "15px", fontFamily: "inherit", color: "#0D1B3E", outline: "none" }} placeholder="The promise made" />
+            <input style={{ padding: "14px 18px", borderRadius: "10px", border: "1.5px solid rgba(13,27,62,0.12)", fontSize: "15px", fontFamily: "inherit", color: "#0D1B3E", outline: "none" }} placeholder="Source or evidence link" />
+            <textarea style={{ padding: "14px 18px", borderRadius: "10px", border: "1.5px solid rgba(13,27,62,0.12)", fontSize: "15px", fontFamily: "inherit", color: "#0D1B3E", outline: "none", minHeight: "100px", resize: "vertical" }} placeholder="Any additional context..." />
+            <button style={{ width: "fit-content", background: "#FF6B00", color: "white", border: "none", padding: "16px 36px", borderRadius: "8px", fontSize: "16px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Submit Suggestion</button>
+          </div>
+        </div>
+        <div style={{ background: "#0D1B3E", borderRadius: "24px", padding: "40px", display: "flex", flexDirection: "column" as const, gap: "16px" }}>
+          <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", marginBottom: "8px", letterSpacing: "1px", textTransform: "uppercase" as const }}>Recent community suggestions</div>
+          {[
+            { user: "@delhi_citizen", time: "2 hours ago", text: "The free bus for women promise should be marked as Kept - it has been running since Oct 2019 continuously", tag: "Verified and Updated", green: true },
+            { user: "@up_voter_22", time: "5 hours ago", text: "Please add Akhilesh Yadav's promise of laptop distribution to students from 2012 manifesto", tag: "Under Review", green: false },
+            { user: "@mumbai_watch", time: "1 day ago", text: "Devendra Fadnavis needs to be added as Maharashtra CM with his new promises from Dec 2024", tag: "Being Added", green: false },
+          ].map((s, i) => (
+            <div key={i} style={{ background: "rgba(255,255,255,0.04)", borderRadius: "12px", padding: "18px", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                <span style={{ fontSize: "12px", color: "#FF6B00", fontWeight: "600" }}>{s.user}</span>
+                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>{s.time}</span>
+              </div>
+              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.5" }}>{s.text}</div>
+              <div style={{ display: "inline-block", marginTop: "10px", padding: "3px 10px", borderRadius: "100px", fontSize: "11px", background: s.green ? "rgba(18,168,84,0.2)" : "rgba(245,158,11,0.2)", color: s.green ? "#12A854" : "#F59E0B" }}>{s.tag}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ background: "#080F22", padding: "60px", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "24px", fontWeight: "900", color: "#FF6B00" }}>Vaada</div>
+          <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", marginTop: "6px" }}>Holding India's politicians accountable - one promise at a time.</div>
+        </div>
+        <div style={{ fontSize: "24px" }}>🇮🇳</div>
+        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)", textAlign: "right" as const }}>
+          <div>Built for the people of India</div>
+          <div style={{ marginTop: "8px" }}>Data from public records, manifestos and fact-checkers</div>
+        </div>
+      </footer>
+
+    </main>
   );
 }
