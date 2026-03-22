@@ -48,27 +48,32 @@ export default function Admin() {
     setAiLoading(true);
     setError("");
     try {
-      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`
+        },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Give me details about Indian politician "${form.name}". Respond ONLY with a JSON object, no markdown, no explanation, no backticks:
-{"role":"their current or most recent role","party":"their party abbreviation like BJP or INC or AAP or SP or TMC","state":"their home state","constituency":"their constituency if applicable or empty string","level":"National or State or Local","bio":"2-3 sentence bio about them","promises_kept":estimated number as integer,"promises_progress":estimated number as integer,"promises_broken":estimated number as integer,"total_promises":sum of the three numbers as integer}`
-            }]
-          }]
+          model: "llama-3.1-8b-instant",
+          messages: [{
+            role: "user",
+            content: `Give me details about Indian politician "${form.name}". Respond ONLY with a valid JSON object, no markdown, no backticks, no explanation. Just raw JSON: {"role":"current or most recent political role","party":"party abbreviation such as BJP or INC or AAP or SP or TMC","state":"home state full name","constituency":"constituency name or empty string","level":"National or State or Local","bio":"2-3 sentences about their political career","promises_kept":5,"promises_progress":3,"promises_broken":4,"total_promises":12}`
+          }],
+          temperature: 0.1,
+          max_tokens: 500
         })
       });
       const data = await res.json();
-      const text = data.candidates[0].content.parts[0].text;
-      const clean = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
-      setForm(f => ({ ...f, ...parsed }));
+      if (data.error) { setError(`API Error: ${data.error.message}`); setAiLoading(false); return; }
+      const text = data.choices?.[0]?.message?.content || "";
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) { setError("Could not parse AI response. Try again."); setAiLoading(false); return; }
+      const parsed = JSON.parse(jsonMatch[0]);
+      setForm(f => ({ ...f, ...parsed, name: f.name }));
     } catch (e) {
-      setError("AI fill failed - check the name and try again");
       console.error(e);
+      setError("Something went wrong. Try again.");
     }
     setAiLoading(false);
   }
@@ -90,7 +95,7 @@ export default function Admin() {
     <>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: DM Sans, sans-serif; background: #faf8f5; }
+        body { font-family: 'DM Sans', sans-serif; background: #faf8f5; }
         .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .login-card { background: white; padding: 48px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 8px 40px rgba(0,0,0,0.1); text-align: center; }
         h1 { font-family: Georgia, serif; color: #FF6B00; font-size: 32px; margin-bottom: 8px; }
@@ -116,7 +121,7 @@ export default function Admin() {
     <>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: DM Sans, sans-serif; background: #faf8f5; color: #0D1B3E; }
+        body { font-family: 'DM Sans', sans-serif; background: #faf8f5; color: #0D1B3E; }
         .nav { background: #0D1B3E; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
         .nav-logo { color: #FF6B00; font-size: 24px; font-weight: 700; font-family: Georgia, serif; }
         .nav-right { color: white; font-size: 14px; opacity: 0.6; }
@@ -126,46 +131,43 @@ export default function Admin() {
         .card { background: white; border-radius: 16px; padding: 32px; border: 1px solid #eee; margin-bottom: 24px; }
         .card h2 { font-family: Georgia, serif; font-size: 20px; margin-bottom: 20px; }
         .ai-bar { display: flex; gap: 12px; margin-bottom: 8px; }
-        .ai-input { flex: 1; padding: 14px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; }
+        .ai-input { flex: 1; padding: 14px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; font-family: inherit; }
         .ai-input:focus { border-color: #FF6B00; }
-        .ai-btn { padding: 14px 24px; background: #0D1B3E; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .ai-btn { padding: 14px 28px; background: #0D1B3E; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; }
         .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .ai-hint { font-size: 13px; color: #999; margin-bottom: 0; }
+        .ai-hint { font-size: 13px; color: #999; }
         .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .field { margin-bottom: 16px; }
-        label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        input[type=text], select, textarea { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; font-family: inherit; }
+        label { display: block; font-size: 12px; font-weight: 700; color: #666; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
+        input[type=text], select, textarea { width: 100%; padding: 12px 14px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; font-family: inherit; color: #0D1B3E; }
         input[type=text]:focus, select:focus, textarea:focus { border-color: #FF6B00; }
-        input[type=number] { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; }
+        input[type=number] { width: 100%; padding: 12px 14px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; font-family: inherit; color: #0D1B3E; }
         input[type=number]:focus { border-color: #FF6B00; }
         textarea { resize: vertical; min-height: 100px; }
         .nums { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
         .save-btn { width: 100%; padding: 16px; background: #FF6B00; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 8px; }
         .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .success { background: #e8f8ef; color: #12A854; padding: 16px; border-radius: 10px; text-align: center; font-weight: 700; margin-bottom: 16px; }
-        .error { background: #fde8e8; color: #e53e3e; padding: 16px; border-radius: 10px; text-align: center; margin-bottom: 16px; }
+        .success { background: #e8f8ef; color: #12A854; padding: 16px; border-radius: 10px; text-align: center; font-weight: 700; margin-bottom: 16px; border: 1px solid #12A854; }
+        .error { background: #fde8e8; color: #e53e3e; padding: 16px; border-radius: 10px; text-align: center; margin-bottom: 16px; border: 1px solid #e53e3e; }
         @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } .nums { grid-template-columns: 1fr 1fr; } .container { padding: 20px; } }
       `}</style>
       <nav className="nav">
         <div className="nav-logo">Vaada Admin</div>
-        <div className="nav-right">Admin Panel</div>
+        <div className="nav-right">Powered by Groq</div>
       </nav>
       <div className="container">
         <h1>Add Politician</h1>
         <p className="subtitle">Type a name and click AI Fill to auto-populate details</p>
-
-        {saved && <div className="success">Politician saved successfully!</div>}
+        {saved && <div className="success">Politician saved to Supabase successfully!</div>}
         {error && <div className="error">{error}</div>}
-
         <div className="card">
           <h2>AI Auto-Fill</h2>
           <div className="ai-bar">
-            <input className="ai-input" type="text" placeholder="Enter politician name e.g. Narendra Modi" value={form.name} onChange={e => update("name", e.target.value)} />
+            <input className="ai-input" type="text" placeholder="e.g. Devendra Fadnavis" value={form.name} onChange={e => update("name", e.target.value)} onKeyDown={e => e.key === "Enter" && autoFill()} />
             <button className="ai-btn" onClick={autoFill} disabled={aiLoading}>{aiLoading ? "Filling..." : "AI Fill"}</button>
           </div>
-          <p className="ai-hint">Powered by Google Gemini - free tier</p>
+          <p className="ai-hint">Powered by Groq - free tier. Review all fields before saving.</p>
         </div>
-
         <div className="card">
           <h2>Details</h2>
           <div className="grid2">
@@ -182,10 +184,10 @@ export default function Admin() {
           </div>
           <div className="field"><label>Bio</label><textarea value={form.bio} onChange={e => update("bio", e.target.value)} /></div>
           <div className="nums">
-            <div className="field"><label>Total Promises</label><input type="number" value={form.total_promises} onChange={e => update("total_promises", parseInt(e.target.value))} /></div>
-            <div className="field"><label>Kept</label><input type="number" value={form.promises_kept} onChange={e => update("promises_kept", parseInt(e.target.value))} /></div>
-            <div className="field"><label>In Progress</label><input type="number" value={form.promises_progress} onChange={e => update("promises_progress", parseInt(e.target.value))} /></div>
-            <div className="field"><label>Broken</label><input type="number" value={form.promises_broken} onChange={e => update("promises_broken", parseInt(e.target.value))} /></div>
+            <div className="field"><label>Total Promises</label><input type="number" min="0" value={form.total_promises} onChange={e => update("total_promises", parseInt(e.target.value) || 0)} /></div>
+            <div className="field"><label>Kept</label><input type="number" min="0" value={form.promises_kept} onChange={e => update("promises_kept", parseInt(e.target.value) || 0)} /></div>
+            <div className="field"><label>In Progress</label><input type="number" min="0" value={form.promises_progress} onChange={e => update("promises_progress", parseInt(e.target.value) || 0)} /></div>
+            <div className="field"><label>Broken</label><input type="number" min="0" value={form.promises_broken} onChange={e => update("promises_broken", parseInt(e.target.value) || 0)} /></div>
           </div>
           <button className="save-btn" onClick={save} disabled={loading}>{loading ? "Saving..." : "Save Politician"}</button>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 import India from "@svg-maps/india";
-
+ 
 export default function IndiaMap() {
   const locations = India.locations;
   return (
@@ -29,3 +29,4 @@ export default function IndiaMap() {
     </>
   );
 }
+ 
