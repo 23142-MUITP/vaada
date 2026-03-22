@@ -151,9 +151,9 @@ export default function Home() {
             <Link href="/promises" className="nav-link">Promises</Link>
             <Link href="/states" className="nav-link">By State</Link>
             <Link href="/parties" className="nav-link">By Party</Link>
-            <Link href="/politicians" className="nav-cta">Explore Now</Link>
+            <Link href="/leaderboard" className="nav-cta">Leaderboard</Link>
           </div>
-          <Link href="/politicians" className="nav-cta nav-mobile-cta" style={{ fontSize: "12px", padding: "8px 14px" }}>Explore</Link>
+          <Link href="/leaderboard" className="nav-cta nav-mobile-cta" style={{ fontSize: "12px", padding: "8px 14px" }}>Leaderboard</Link>
         </nav>
 
         {/* HERO */}
