@@ -66,12 +66,21 @@ export default function Admin() {
   const [pw, setPw] = useState("");
   const [pwError, setPwError] = useState(false);
 
-  // Politician state
+  // Politician add state
   const [form, setForm] = useState<PoliticianForm>(emptyPolitician);
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+
+  // Edit politician state
+  const [editForm, setEditForm] = useState<PoliticianForm>(emptyPolitician);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editSearch, setEditSearch] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editSaved, setEditSaved] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   // Promise state
   const [politicians, setPoliticians] = useState<Politician[]>([]);
@@ -81,7 +90,7 @@ export default function Admin() {
   const [promiseSaved, setPromiseSaved] = useState(false);
   const [promiseError, setPromiseError] = useState("");
   const [selectedPolitician, setSelectedPolitician] = useState("");
-  const [activeTab, setActiveTab] = useState<"politicians" | "promises">("politicians");
+  const [activeTab, setActiveTab] = useState<"politicians" | "edit" | "promises">("politicians");
   const [editingPromise, setEditingPromise] = useState<string | null>(null);
 
   function login() {
@@ -104,8 +113,62 @@ export default function Admin() {
     setForm(f => ({ ...f, [field]: value }));
   }
 
+  function updateEditForm(field: string, value: string | number) {
+    setEditForm(f => ({ ...f, [field]: value }));
+  }
+
   function updatePromise(field: string, value: string | number) {
     setPromiseForm(f => ({ ...f, [field]: value }));
+  }
+
+  async function selectPoliticianToEdit(id: string) {
+    setEditingId(id);
+    setEditError("");
+    setEditSaved(false);
+    setDeleteConfirm(false);
+    const { data } = await supabase.from("politicians").select("*").eq("id", id).single();
+    if (data) {
+      setEditForm({
+        name: data.name || "",
+        role: data.role || "",
+        party: data.party || "",
+        state: data.state || "",
+        constituency: data.constituency || "",
+        level: data.level || "National",
+        bio: data.bio || "",
+        promises_kept: data.promises_kept || 0,
+        promises_progress: data.promises_progress || 0,
+        promises_broken: data.promises_broken || 0,
+        total_promises: data.total_promises || 0,
+      });
+    }
+  }
+
+  async function saveEdit() {
+    if (!editingId) return;
+    if (!editForm.name || !editForm.party) { setEditError("Name and party are required"); return; }
+    setEditLoading(true);
+    setEditError("");
+    const initials = editForm.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+    const { error: err } = await supabase.from("politicians").update({ ...editForm, initials }).eq("id", editingId);
+    if (err) { setEditError(err.message); setEditLoading(false); return; }
+    setEditSaved(true);
+    setEditLoading(false);
+    loadPoliticians();
+    setTimeout(() => setEditSaved(false), 3000);
+  }
+
+  async function deletePolitician() {
+    if (!editingId) return;
+    setEditLoading(true);
+    await supabase.from("promises").delete().eq("politician_id", editingId);
+    const { error: err } = await supabase.from("politicians").delete().eq("id", editingId);
+    if (err) { setEditError(err.message); setEditLoading(false); return; }
+    setEditingId(null);
+    setEditForm(emptyPolitician);
+    setDeleteConfirm(false);
+    setEditLoading(false);
+    loadPoliticians();
   }
 
   function selectPoliticianForPromise(id: string) {
@@ -207,6 +270,12 @@ export default function Admin() {
 
   const statusColor = (s: string) => s === "Kept" ? "#12A854" : s === "Broken" ? "#e53e3e" : "#FF6B00";
 
+  const filteredPoliticians = politicians.filter(p =>
+    p.name.toLowerCase().includes(editSearch.toLowerCase()) ||
+    p.party?.toLowerCase().includes(editSearch.toLowerCase()) ||
+    p.state?.toLowerCase().includes(editSearch.toLowerCase())
+  );
+
   if (!auth) return (
     <>
       <style>{`
@@ -245,7 +314,7 @@ export default function Admin() {
         h1 { font-family: Georgia, serif; font-size: 36px; margin-bottom: 8px; }
         .subtitle { color: #666; margin-bottom: 24px; }
         .tabs { display: flex; gap: 0; margin-bottom: 32px; border: 2px solid #eee; border-radius: 12px; overflow: hidden; }
-        .tab { flex: 1; padding: 14px; background: white; border: none; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; color: #999; transition: all 0.2s; }
+        .tab { flex: 1; padding: 14px; background: white; border: none; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; color: #999; transition: all 0.2s; }
         .tab.active { background: #0D1B3E; color: white; }
         .card { background: white; border-radius: 16px; padding: 32px; border: 1px solid #eee; margin-bottom: 24px; }
         .card h2 { font-family: Georgia, serif; font-size: 20px; margin-bottom: 20px; }
@@ -265,12 +334,23 @@ export default function Admin() {
         .save-btn { width: 100%; padding: 16px; background: #FF6B00; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 8px; }
         .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .cancel-btn { width: 100%; padding: 14px; background: white; color: #666; border: 2px solid #eee; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .delete-btn { width: 100%; padding: 14px; background: white; color: #e53e3e; border: 2px solid #e53e3e; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+        .delete-confirm-btn { width: 100%; padding: 14px; background: #e53e3e; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; }
         .success { background: #e8f8ef; color: #12A854; padding: 16px; border-radius: 10px; text-align: center; font-weight: 700; margin-bottom: 16px; border: 1px solid #12A854; }
         .error { background: #fde8e8; color: #e53e3e; padding: 16px; border-radius: 10px; text-align: center; margin-bottom: 16px; border: 1px solid #e53e3e; }
-        .politician-select { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; font-family: inherit; color: #0D1B3E; margin-bottom: 24px; }
+        .politician-select { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; font-family: inherit; color: #0D1B3E; margin-bottom: 16px; }
         .politician-select:focus { border-color: #FF6B00; }
+        .search-input { width: 100%; padding: 12px 16px; border: 2px solid #eee; border-radius: 10px; font-size: 15px; outline: none; font-family: inherit; color: #0D1B3E; margin-bottom: 12px; }
+        .search-input:focus { border-color: #FF6B00; }
+        .pol-list { max-height: 280px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; margin-bottom: 24px; }
+        .pol-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+        .pol-item:last-child { border-bottom: none; }
+        .pol-item:hover { background: #faf8f5; }
+        .pol-item.selected { background: #fff3e8; border-left: 3px solid #FF6B00; }
+        .pol-item-name { font-weight: 700; font-size: 14px; color: #0D1B3E; }
+        .pol-item-meta { font-size: 12px; color: #888; margin-top: 2px; }
+        .pol-item-arrow { color: #FF6B00; font-size: 18px; }
         .promise-list { margin-top: 24px; }
-        .promise-list h3 { font-family: Georgia, serif; font-size: 18px; margin-bottom: 16px; color: #0D1B3E; }
         .promise-item { background: #faf8f5; border-radius: 10px; padding: 16px; margin-bottom: 12px; border: 1px solid #eee; }
         .promise-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
         .promise-title { font-weight: 700; font-size: 15px; color: #0D1B3E; }
@@ -280,6 +360,7 @@ export default function Admin() {
         .del-btn { padding: 6px 14px; background: white; color: #e53e3e; border: 2px solid #e53e3e; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit; font-weight: 700; }
         .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; color: white; margin-left: 8px; }
         .empty-state { text-align: center; color: #999; padding: 32px; font-size: 15px; }
+        .warning-box { background: #fff8e8; border: 1px solid #f0a500; border-radius: 10px; padding: 16px; margin-top: 16px; font-size: 14px; color: #7a5c00; }
         @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } .nums { grid-template-columns: 1fr 1fr; } .container { padding: 20px; } .nav { padding: 16px 20px; } }
       `}</style>
       <nav className="nav">
@@ -292,9 +373,11 @@ export default function Admin() {
 
         <div className="tabs">
           <button className={`tab ${activeTab === "politicians" ? "active" : ""}`} onClick={() => setActiveTab("politicians")}>Add Politician</button>
+          <button className={`tab ${activeTab === "edit" ? "active" : ""}`} onClick={() => { setActiveTab("edit"); loadPoliticians(); }}>Edit Politician</button>
           <button className={`tab ${activeTab === "promises" ? "active" : ""}`} onClick={() => { setActiveTab("promises"); loadPoliticians(); }}>Manage Promises</button>
         </div>
 
+        {/* ADD POLITICIAN TAB */}
         {activeTab === "politicians" && (
           <>
             {saved && <div className="success">Politician saved successfully!</div>}
@@ -333,11 +416,77 @@ export default function Admin() {
           </>
         )}
 
+        {/* EDIT POLITICIAN TAB */}
+        {activeTab === "edit" && (
+          <>
+            {editSaved && <div className="success">Politician updated successfully!</div>}
+            {editError && <div className="error">{editError}</div>}
+            <div className="card">
+              <h2>Select Politician to Edit</h2>
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Search by name, party, state..."
+                value={editSearch}
+                onChange={e => setEditSearch(e.target.value)}
+              />
+              <div className="pol-list">
+                {filteredPoliticians.length === 0 ? (
+                  <div className="empty-state">No politicians found</div>
+                ) : filteredPoliticians.map(p => (
+                  <div key={p.id} className={`pol-item ${editingId === p.id ? "selected" : ""}`} onClick={() => selectPoliticianToEdit(p.id)}>
+                    <div>
+                      <div className="pol-item-name">{p.name}</div>
+                      <div className="pol-item-meta">{p.party} - {p.state}</div>
+                    </div>
+                    <div className="pol-item-arrow">›</div>
+                  </div>
+                ))}
+              </div>
+
+              {editingId && (
+                <>
+                  <h2 style={{marginBottom: 20}}>Editing: {editForm.name}</h2>
+                  <div className="grid2">
+                    <div className="field"><label>Name</label><input type="text" value={editForm.name} onChange={e => updateEditForm("name", e.target.value)} /></div>
+                    <div className="field"><label>Role / Title</label><input type="text" value={editForm.role} onChange={e => updateEditForm("role", e.target.value)} /></div>
+                    <div className="field"><label>Party</label><input type="text" value={editForm.party} onChange={e => updateEditForm("party", e.target.value)} /></div>
+                    <div className="field"><label>State</label><input type="text" value={editForm.state} onChange={e => updateEditForm("state", e.target.value)} /></div>
+                    <div className="field"><label>Constituency</label><input type="text" value={editForm.constituency} onChange={e => updateEditForm("constituency", e.target.value)} /></div>
+                    <div className="field"><label>Level</label>
+                      <select value={editForm.level} onChange={e => updateEditForm("level", e.target.value)}>
+                        <option>National</option><option>State</option><option>Local</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="field"><label>Bio</label><textarea value={editForm.bio} onChange={e => updateEditForm("bio", e.target.value)} /></div>
+                  <div className="nums">
+                    <div className="field"><label>Total</label><input type="number" min="0" value={editForm.total_promises} onChange={e => updateEditForm("total_promises", parseInt(e.target.value) || 0)} /></div>
+                    <div className="field"><label>Kept</label><input type="number" min="0" value={editForm.promises_kept} onChange={e => updateEditForm("promises_kept", parseInt(e.target.value) || 0)} /></div>
+                    <div className="field"><label>In Progress</label><input type="number" min="0" value={editForm.promises_progress} onChange={e => updateEditForm("promises_progress", parseInt(e.target.value) || 0)} /></div>
+                    <div className="field"><label>Broken</label><input type="number" min="0" value={editForm.promises_broken} onChange={e => updateEditForm("promises_broken", parseInt(e.target.value) || 0)} /></div>
+                  </div>
+                  <button className="save-btn" onClick={saveEdit} disabled={editLoading}>{editLoading ? "Saving..." : "Update Politician"}</button>
+                  {!deleteConfirm ? (
+                    <button className="delete-btn" onClick={() => setDeleteConfirm(true)}>Delete Politician</button>
+                  ) : (
+                    <>
+                      <div className="warning-box">This will permanently delete {editForm.name} and all their promises. This cannot be undone.</div>
+                      <button className="delete-confirm-btn" onClick={deletePolitician} disabled={editLoading}>Confirm Delete</button>
+                      <button className="cancel-btn" onClick={() => setDeleteConfirm(false)}>Cancel</button>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* MANAGE PROMISES TAB */}
         {activeTab === "promises" && (
           <>
             {promiseSaved && <div className="success">{editingPromise ? "Promise updated!" : "Promise saved successfully!"}</div>}
             {promiseError && <div className="error">{promiseError}</div>}
-
             <div className="card">
               <h2>{editingPromise ? "Edit Promise" : "Add Promise"}</h2>
               <div className="field">
