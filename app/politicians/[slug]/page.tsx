@@ -17,19 +17,35 @@ type Politician = {
   total_promises: number;
 };
 
+type Promise = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  source: string;
+  year_made: number;
+};
+
 export default function PoliticianProfile() {
   const { slug } = useParams();
   const [politician, setPolitician] = useState<Politician | null>(null);
+  const [promises, setPromises] = useState<Promise[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("All");
 
   useEffect(() => {
-    async function fetch() {
+    async function load() {
       const name = (slug as string).replace(/-/g, " ");
       const { data } = await supabase.from("politicians").select("*").ilike("name", name).single();
-      if (data) setPolitician(data);
+      if (data) {
+        setPolitician(data);
+        const { data: pData } = await supabase.from("promises").select("*").eq("politician_id", data.id).order("year_made", { ascending: false });
+        if (pData) setPromises(pData);
+      }
       setLoading(false);
     }
-    fetch();
+    load();
   }, [slug]);
 
   function getInitials(name: string) {
@@ -40,6 +56,11 @@ export default function PoliticianProfile() {
     if (!p.total_promises) return 0;
     return Math.round((p.promises_kept / p.total_promises) * 100);
   }
+
+  const statusColor = (s: string) => s === "Kept" ? "#12A854" : s === "Broken" ? "#e53e3e" : "#FF6B00";
+  const statusBg = (s: string) => s === "Kept" ? "#e8f8ef" : s === "Broken" ? "#fde8e8" : "#fff4ec";
+
+  const filteredPromises = filter === "All" ? promises : promises.filter(p => p.status === filter);
 
   if (loading) return <div style={{padding: "80px", textAlign: "center", fontFamily: "DM Sans, sans-serif", color: "#666"}}>Loading...</div>;
   if (!politician) return <div style={{padding: "80px", textAlign: "center", fontFamily: "DM Sans, sans-serif", color: "#666"}}>Politician not found.</div>;
@@ -84,12 +105,33 @@ export default function PoliticianProfile() {
         .stat-label { font-size: 13px; color: #666; }
         .bio-text { font-size: 16px; line-height: 1.7; color: #444; }
         .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #FF6B00; text-decoration: none; font-weight: 600; margin-bottom: 24px; }
+        .promises-section { margin-top: 8px; }
+        .promises-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+        .promises-header h2 { font-family: Georgia, serif; font-size: 28px; color: #0D1B3E; }
+        .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-tab { padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; border: 2px solid #eee; background: white; color: #666; font-family: inherit; transition: all 0.15s; }
+        .filter-tab:hover { border-color: #FF6B00; color: #FF6B00; }
+        .filter-tab.active { background: #0D1B3E; color: white; border-color: #0D1B3E; }
+        .promise-card { background: white; border-radius: 14px; padding: 24px; border: 1px solid #eee; margin-bottom: 16px; transition: box-shadow 0.2s; }
+        .promise-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .promise-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 10px; }
+        .promise-title { font-size: 17px; font-weight: 700; color: #0D1B3E; line-height: 1.4; }
+        .status-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+        .promise-desc { font-size: 15px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+        .promise-meta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+        .meta-tag { font-size: 13px; color: #888; background: #f5f5f5; padding: 4px 10px; border-radius: 6px; }
+        .promise-source { font-size: 13px; color: #FF6B00; text-decoration: none; }
+        .promise-source:hover { text-decoration: underline; }
+        .empty-promises { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-promises p { font-size: 16px; margin-top: 8px; }
         @media (max-width: 768px) {
           .hero { flex-direction: column; padding: 40px 20px; }
           .hero-name { font-size: 32px; }
           .grid { grid-template-columns: 1fr; }
           .content { padding: 20px; }
           .breadcrumb { padding: 16px 20px; }
+          .nav { padding: 16px 20px; }
+          .promises-header { flex-direction: column; align-items: flex-start; }
         }
       `}</style>
 
@@ -120,7 +162,7 @@ export default function PoliticianProfile() {
       </div>
 
       <div className="content">
-        <Link href="/politicians" className="back-btn">← Back to all politicians</Link>
+        <Link href="/politicians" className="back-btn">- Back to all politicians</Link>
         <div className="grid">
           <div className="card">
             <h2>Promise Scorecard</h2>
@@ -151,6 +193,40 @@ export default function PoliticianProfile() {
             <p className="bio-text">{politician.bio || `${politician.name} is a prominent Indian politician serving as ${politician.role} representing the ${politician.party} party.`}</p>
           </div>
         </div>
+
+        {promises.length > 0 && (
+          <div className="promises-section">
+            <div className="promises-header">
+              <h2>Campaign Promises ({promises.length})</h2>
+              <div className="filter-tabs">
+                {["All", "Kept", "In Progress", "Broken"].map(f => (
+                  <button key={f} className={`filter-tab ${filter === f ? "active" : ""}`} onClick={() => setFilter(f)}>{f}</button>
+                ))}
+              </div>
+            </div>
+
+            {filteredPromises.length === 0 ? (
+              <div className="empty-promises">
+                <p>No {filter.toLowerCase()} promises found.</p>
+              </div>
+            ) : (
+              filteredPromises.map(p => (
+                <div key={p.id} className="promise-card">
+                  <div className="promise-top">
+                    <div className="promise-title">{p.title}</div>
+                    <span className="status-badge" style={{ background: statusBg(p.status), color: statusColor(p.status) }}>{p.status}</span>
+                  </div>
+                  {p.description && <p className="promise-desc">{p.description}</p>}
+                  <div className="promise-meta">
+                    {p.category && <span className="meta-tag">{p.category}</span>}
+                    {p.year_made && <span className="meta-tag">{p.year_made}</span>}
+                    {p.source && <a href={p.source} target="_blank" rel="noopener noreferrer" className="promise-source">View Source</a>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </>
   );
