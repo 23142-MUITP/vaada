@@ -90,7 +90,11 @@ export default function Admin() {
   const [promiseSaved, setPromiseSaved] = useState(false);
   const [promiseError, setPromiseError] = useState("");
   const [selectedPolitician, setSelectedPolitician] = useState("");
-  const [activeTab, setActiveTab] = useState<"politicians" | "edit" | "promises">("politicians");
+  const [activeTab, setActiveTab] = useState<"politicians" | "edit" | "promises" | "suggestions">("politicians");
+
+  // Suggestions state
+  const [suggestions, setSuggestions] = useState<{id: string; politician_name: string; state: string; suggestion_type: string; message: string; contact_email: string; status: string; created_at: string;}[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [editingPromise, setEditingPromise] = useState<string | null>(null);
 
   function login() {
@@ -268,6 +272,23 @@ export default function Admin() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  async function loadSuggestions() {
+    setSuggestionsLoading(true);
+    const { data } = await supabase.from("suggestions").select("*").order("created_at", { ascending: false });
+    if (data) setSuggestions(data);
+    setSuggestionsLoading(false);
+  }
+
+  async function updateSuggestionStatus(id: string, status: string) {
+    await supabase.from("suggestions").update({ status }).eq("id", id);
+    loadSuggestions();
+  }
+
+  async function deleteSuggestion(id: string) {
+    await supabase.from("suggestions").delete().eq("id", id);
+    loadSuggestions();
+  }
+
   const statusColor = (s: string) => s === "Kept" ? "#12A854" : s === "Broken" ? "#e53e3e" : "#FF6B00";
 
   const filteredPoliticians = politicians.filter(p =>
@@ -361,6 +382,27 @@ export default function Admin() {
         .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; color: white; margin-left: 8px; }
         .empty-state { text-align: center; color: #999; padding: 32px; font-size: 15px; }
         .warning-box { background: #fff8e8; border: 1px solid #f0a500; border-radius: 10px; padding: 16px; margin-top: 16px; font-size: 14px; color: #7a5c00; }
+        .suggestion-item { background: #faf8f5; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #eee; }
+        .suggestion-item.reviewed { opacity: 0.6; }
+        .suggestion-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+        .suggestion-type { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #FF6B00; margin-bottom: 4px; }
+        .suggestion-who { font-weight: 700; font-size: 15px; color: #0D1B3E; }
+        .suggestion-meta { font-size: 13px; color: #888; margin-top: 2px; }
+        .suggestion-message { font-size: 14px; color: #444; line-height: 1.6; margin-bottom: 12px; background: white; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
+        .suggestion-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .sug-btn { padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; border: none; }
+        .sug-btn-green { background: #e8f8ef; color: #12A854; }
+        .sug-btn-orange { background: #fff3e8; color: #FF6B00; }
+        .sug-btn-red { background: white; color: #e53e3e; border: 1px solid #e53e3e !important; }
+        .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .status-pill-pending { background: #fff3e8; color: #FF6B00; }
+        .status-pill-reviewed { background: #e8f8ef; color: #12A854; }
+        .status-pill-dismissed { background: #f5f5f5; color: #999; }
+        .suggestion-date { font-size: 12px; color: #aaa; }
+        .suggestions-summary { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .sum-card { background: white; border-radius: 10px; padding: 16px 24px; border: 1px solid #eee; text-align: center; }
+        .sum-num { font-family: Georgia, serif; font-size: 28px; font-weight: 700; }
+        .sum-label { font-size: 12px; color: #666; margin-top: 2px; }
         @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } .nums { grid-template-columns: 1fr 1fr; } .container { padding: 20px; } .nav { padding: 16px 20px; } }
       `}</style>
       <nav className="nav">
@@ -375,6 +417,7 @@ export default function Admin() {
           <button className={`tab ${activeTab === "politicians" ? "active" : ""}`} onClick={() => setActiveTab("politicians")}>Add Politician</button>
           <button className={`tab ${activeTab === "edit" ? "active" : ""}`} onClick={() => { setActiveTab("edit"); loadPoliticians(); }}>Edit Politician</button>
           <button className={`tab ${activeTab === "promises" ? "active" : ""}`} onClick={() => { setActiveTab("promises"); loadPoliticians(); }}>Manage Promises</button>
+          <button className={`tab ${activeTab === "suggestions" ? "active" : ""}`} onClick={() => { setActiveTab("suggestions"); loadSuggestions(); }}>Suggestions {suggestions.filter(s => s.status === "pending").length > 0 ? `(${suggestions.filter(s => s.status === "pending").length})` : ""}</button>
         </div>
 
         {/* ADD POLITICIAN TAB */}
@@ -551,6 +594,63 @@ export default function Admin() {
                 )}
               </div>
             )}
+          </>
+        )}
+        {/* SUGGESTIONS TAB */}
+        {activeTab === "suggestions" && (
+          <>
+            <div className="suggestions-summary">
+              <div className="sum-card">
+                <div className="sum-num" style={{ color: "#FF6B00" }}>{suggestions.filter(s => s.status === "pending").length}</div>
+                <div className="sum-label">Pending</div>
+              </div>
+              <div className="sum-card">
+                <div className="sum-num" style={{ color: "#12A854" }}>{suggestions.filter(s => s.status === "reviewed").length}</div>
+                <div className="sum-label">Reviewed</div>
+              </div>
+              <div className="sum-card">
+                <div className="sum-num" style={{ color: "#999" }}>{suggestions.length}</div>
+                <div className="sum-label">Total</div>
+              </div>
+            </div>
+
+            <div className="card">
+              <h2>User Suggestions</h2>
+              {suggestionsLoading ? (
+                <div className="empty-state">Loading suggestions...</div>
+              ) : suggestions.length === 0 ? (
+                <div className="empty-state">No suggestions yet. They will appear here when users submit them.</div>
+              ) : (
+                suggestions.map(s => (
+                  <div key={s.id} className={`suggestion-item ${s.status !== "pending" ? "reviewed" : ""}`}>
+                    <div className="suggestion-top">
+                      <div>
+                        <div className="suggestion-type">{s.suggestion_type}</div>
+                        <div className="suggestion-who">
+                          {s.politician_name ? s.politician_name : "General suggestion"}
+                          {s.state ? ` - ${s.state}` : ""}
+                        </div>
+                        {s.contact_email && <div className="suggestion-meta">{s.contact_email}</div>}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                        <span className={`status-pill status-pill-${s.status}`}>{s.status}</span>
+                        <span className="suggestion-date">{new Date(s.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                      </div>
+                    </div>
+                    <div className="suggestion-message">{s.message}</div>
+                    <div className="suggestion-actions">
+                      {s.status !== "reviewed" && (
+                        <button className="sug-btn sug-btn-green" onClick={() => updateSuggestionStatus(s.id, "reviewed")}>Mark Reviewed</button>
+                      )}
+                      {s.status !== "pending" && (
+                        <button className="sug-btn sug-btn-orange" onClick={() => updateSuggestionStatus(s.id, "pending")}>Mark Pending</button>
+                      )}
+                      <button className="sug-btn sug-btn-red" onClick={() => deleteSuggestion(s.id)}>Delete</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </>
         )}
       </div>
