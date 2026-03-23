@@ -32,4 +32,4 @@ body {
   .vn { padding: 14px 20px !important; }
   .vn-links { display: none !important; }
   .vn-burger { display: flex !important; }
-}
+}.nav { display: none !important; }
