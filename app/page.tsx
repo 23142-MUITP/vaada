@@ -39,21 +39,13 @@ export default function Home() {
         supabase.from("politicians").select("promises_kept, promises_progress, promises_broken, total_promises"),
         supabase.from("promises").select("status"),
       ]);
-
       if (pols) setPoliticians(pols);
-
       if (allPols) {
         const totalKept = allPols.reduce((a, p) => a + (p.promises_kept || 0), 0);
         const totalProgress = allPols.reduce((a, p) => a + (p.promises_progress || 0), 0);
         const totalBroken = allPols.reduce((a, p) => a + (p.promises_broken || 0), 0);
         const totalPromises = promises?.length || 0;
-        setStats({
-          politicians: allPols.length,
-          promises: totalPromises,
-          kept: totalKept,
-          progress: totalProgress,
-          broken: totalBroken,
-        });
+        setStats({ politicians: allPols.length, promises: totalPromises, kept: totalKept, progress: totalProgress, broken: totalBroken });
       }
       setLoading(false);
     }
@@ -84,12 +76,6 @@ export default function Home() {
       <style>{`
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow-x: hidden; }
-        .nav { padding: 20px 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,107,0,0.15); background: rgba(13,27,62,0.95); position: sticky; top: 0; z-index: 100; }
-        .nav-links { display: flex; gap: 36px; align-items: center; }
-        .nav-link { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px; transition: color 0.15s; }
-        .nav-link:hover { color: #FF6B00; }
-        .nav-cta { background: #FF6B00; color: white; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
-        .nav-mobile-cta { display: none; }
         .hero { padding: 70px 60px 60px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); overflow: hidden; }
         .hero-left { width: 100%; max-width: 560px; }
         .hero-h1 { font-family: Georgia, serif; font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin: 0 0 24px 0; }
@@ -113,9 +99,6 @@ export default function Home() {
         .community-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 20px; letter-spacing: -1px; }
         .footer { background: #080F22; padding: 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
         @media (max-width: 768px) {
-          .nav { padding: 14px 20px; }
-          .nav-links { display: none; }
-          .nav-mobile-cta { display: block; }
           .hero { padding: 36px 20px 28px; grid-template-columns: 1fr; gap: 0; text-align: center; }
           .hero-left { max-width: 100%; display: flex; flex-direction: column; align-items: center; }
           .hero-h1 { font-size: 38px; letter-spacing: -1px; margin-bottom: 16px; }
@@ -139,22 +122,6 @@ export default function Home() {
       `}</style>
 
       <main style={{ fontFamily: "'DM Sans', sans-serif", background: "#0D1B3E", color: "white", minHeight: "100vh", margin: 0, padding: 0, overflowX: "hidden" }}>
-
-        {/* NAV */}
-        <nav className="nav">
-          <div>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", fontWeight: "900", color: "#FF6B00" }}>Vaada</div>
-            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", letterSpacing: "3px" }}>INDIA PROMISE TRACKER</div>
-          </div>
-          <div className="nav-links">
-            <Link href="/politicians" className="nav-link">Politicians</Link>
-            <Link href="/promises" className="nav-link">Promises</Link>
-            <Link href="/states" className="nav-link">By State</Link>
-            <Link href="/parties" className="nav-link">By Party</Link>
-            <Link href="/leaderboard" className="nav-cta">Leaderboard</Link>
-          </div>
-          <Link href="/leaderboard" className="nav-cta nav-mobile-cta" style={{ fontSize: "12px", padding: "8px 14px" }}>Leaderboard</Link>
-        </nav>
 
         {/* HERO */}
         <section className="hero">
@@ -221,7 +188,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* POLITICIAN CARDS - LIVE FROM SUPABASE */}
+        {/* POLITICIAN CARDS */}
         <section className="cards-section">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
             <div>
@@ -235,9 +202,9 @@ export default function Home() {
               <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "60px", color: "#8A8FA8", fontSize: "16px" }}>Loading politicians...</div>
             ) : politicians.map((p) => {
               const total = p.total_promises || 1;
-              const keptPct = Math.round((p.promises_kept / total) * 100);
-              const progressPct = Math.round((p.promises_progress / total) * 100);
-              const brokenPct = Math.round((p.promises_broken / total) * 100);
+              const kPct = Math.round((p.promises_kept / total) * 100);
+              const prPct = Math.round((p.promises_progress / total) * 100);
+              const brPct = Math.round((p.promises_broken / total) * 100);
               return (
                 <Link key={p.id} href={`/politicians/${slugify(p.name)}`} className="politician-card">
                   <div style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
@@ -256,9 +223,9 @@ export default function Home() {
                       <strong style={{ fontSize: "12px", color: "#0D1B3E" }}>{p.total_promises} tracked</strong>
                     </div>
                     <div style={{ height: "8px", borderRadius: "100px", background: "#F4F4F8", overflow: "hidden", display: "flex" }}>
-                      <div style={{ width: `${keptPct}%`, background: "#12A854" }}></div>
-                      <div style={{ width: `${progressPct}%`, background: "#F59E0B" }}></div>
-                      <div style={{ width: `${brokenPct}%`, background: "#EF4444" }}></div>
+                      <div style={{ width: `${kPct}%`, background: "#12A854" }}></div>
+                      <div style={{ width: `${prPct}%`, background: "#F59E0B" }}></div>
+                      <div style={{ width: `${brPct}%`, background: "#EF4444" }}></div>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
@@ -305,41 +272,6 @@ export default function Home() {
                 <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", fontWeight: "700", marginBottom: "12px", color: "white" }}>{f.title}</div>
                 <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)", lineHeight: "1.7" }}>{f.desc}</div>
                 {f.soon && <div style={{ display: "inline-block", marginTop: "16px", fontSize: "11px", fontWeight: "700", letterSpacing: "1px", textTransform: "uppercase", color: "#FF6B00", opacity: 0.7 }}>Coming Soon</div>}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* COMMUNITY */}
-        <section className="community-section">
-          <div>
-            <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase", color: "#FF6B00", marginBottom: "16px" }}>Community</div>
-            <h2 className="community-h2">You are the<br />fact-checker</h2>
-            <p style={{ fontSize: "16px", color: "rgba(13,27,62,0.55)", lineHeight: "1.8", marginBottom: "36px" }}>
-              Vaada is built by citizens, for citizens. If you know of a promise we have missed, a status that has changed, or a politician we have not added - tell us. Every suggestion is reviewed and added.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <input style={{ padding: "14px 18px", borderRadius: "10px", border: "1.5px solid rgba(13,27,62,0.12)", fontSize: "15px", fontFamily: "inherit", color: "#0D1B3E", outline: "none", width: "100%" }} placeholder="Politician name" />
-              <input style={{ padding: "14px 18px", borderRadius: "10px", border: "1.5px solid rgba(13,27,62,0.12)", fontSize: "15px", fontFamily: "inherit", color: "#0D1B3E", outline: "none", width: "100%" }} placeholder="The promise made" />
-              <input style={{ padding: "14px 18px", borderRadius: "10px", border: "1.5px solid rgba(13,27,62,0.12)", fontSize: "15px", fontFamily: "inherit", color: "#0D1B3E", outline: "none", width: "100%" }} placeholder="Source or evidence link" />
-              <textarea style={{ padding: "14px 18px", borderRadius: "10px", border: "1.5px solid rgba(13,27,62,0.12)", fontSize: "15px", fontFamily: "inherit", color: "#0D1B3E", outline: "none", minHeight: "100px", resize: "vertical", width: "100%" }} placeholder="Any additional context..." />
-              <button style={{ width: "fit-content", background: "#FF6B00", color: "white", border: "none", padding: "16px 36px", borderRadius: "8px", fontSize: "16px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Submit Suggestion</button>
-            </div>
-          </div>
-          <div style={{ background: "#0D1B3E", borderRadius: "24px", padding: "40px", display: "flex", flexDirection: "column", gap: "16px" }}>
-            <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", marginBottom: "8px", letterSpacing: "1px", textTransform: "uppercase" }}>Recent community suggestions</div>
-            {[
-              { user: "@delhi_citizen", time: "2 hours ago", text: "The free bus for women promise should be marked as Kept - it has been running since Oct 2019 continuously", tag: "Verified and Updated", green: true },
-              { user: "@up_voter_22", time: "5 hours ago", text: "Please add Akhilesh Yadav's promise of laptop distribution to students from 2012 manifesto", tag: "Under Review", green: false },
-              { user: "@mumbai_watch", time: "1 day ago", text: "Devendra Fadnavis needs to be added as Maharashtra CM with his new promises from Dec 2024", tag: "Being Added", green: false },
-            ].map((s, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.04)", borderRadius: "12px", padding: "18px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "12px", color: "#FF6B00", fontWeight: "600" }}>{s.user}</span>
-                  <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>{s.time}</span>
-                </div>
-                <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.5" }}>{s.text}</div>
-                <div style={{ display: "inline-block", marginTop: "10px", padding: "3px 10px", borderRadius: "100px", fontSize: "11px", background: s.green ? "rgba(18,168,84,0.2)" : "rgba(245,158,11,0.2)", color: s.green ? "#12A854" : "#F59E0B" }}>{s.tag}</div>
               </div>
             ))}
           </div>
