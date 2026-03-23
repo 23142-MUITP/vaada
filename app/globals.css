@@ -1,9 +1,6 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -11,7 +8,6 @@ body {
   font-family: 'DM Sans', sans-serif;
 }
 
-/* Vaada Navbar */
 .vn { background: #0D1B3E; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 200; border-bottom: 1px solid rgba(255,107,0,0.1); }
 .vn-logo { color: #FF6B00; font-size: 24px; font-weight: 700; font-family: Georgia, serif; text-decoration: none; line-height: 1; }
 .vn-sub { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 3px; display: block; margin-top: 2px; }
@@ -27,9 +23,10 @@ body {
 .vn-mlink { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 32px; font-weight: 700; font-family: Georgia, serif; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); display: block; }
 .vn-mlink:hover, .vn-mlink.active { color: #FF6B00; }
 .vn-close { position: absolute; top: 24px; right: 24px; background: none; border: none; color: white; font-size: 36px; cursor: pointer; line-height: 1; }
+.nav { display: none !important; }
 
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .vn { padding: 14px 20px !important; }
   .vn-links { display: none !important; }
   .vn-burger { display: flex !important; }
-}.nav { display: none !important; }
+}
