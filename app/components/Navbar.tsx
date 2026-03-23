@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -13,102 +13,67 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    function check() { setIsMobile(window.innerWidth <= 768); }
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
 
   return (
     <>
-      <nav style={{
-        background: "#0D1B3E",
-        padding: isMobile ? "14px 20px" : "16px 40px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        borderBottom: "1px solid rgba(255,107,0,0.1)",
-      }}>
-        <Link href="/" style={{ color: "#FF6B00", fontSize: "24px", fontWeight: "700", fontFamily: "Georgia, serif", textDecoration: "none", lineHeight: 1 }}>
+      <style>{`
+        .vn { background: #0D1B3E; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 200; border-bottom: 1px solid rgba(255,107,0,0.1); }
+        .vn-logo { color: #FF6B00; font-size: 24px; font-weight: 700; font-family: Georgia, serif; text-decoration: none; line-height: 1; }
+        .vn-sub { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 3px; display: block; margin-top: 2px; }
+        .vn-links { display: flex; gap: 24px; align-items: center; }
+        .vn-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; font-weight: 500; }
+        .vn-link:hover { color: white; }
+        .vn-link.active { color: #FF6B00; }
+        .vn-cta { background: #FF6B00; color: white !important; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none; }
+        .vn-burger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 8px; }
+        .vn-burger span { width: 24px; height: 2px; background: white; display: block; border-radius: 2px; }
+        .vn-mobile { display: none; position: fixed; inset: 0; background: #0D1B3E; z-index: 999; flex-direction: column; padding: 80px 40px 40px; }
+        .vn-mobile.open { display: flex; }
+        .vn-mlink { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 32px; font-weight: 700; font-family: Georgia, serif; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); display: block; }
+        .vn-mlink:hover, .vn-mlink.active { color: #FF6B00; }
+        .vn-close { position: absolute; top: 24px; right: 24px; background: none; border: none; color: white; font-size: 36px; cursor: pointer; line-height: 1; }
+        @media (max-width: 768px) {
+          .vn { padding: 14px 20px !important; }
+          .vn-links { display: none !important; }
+          .vn-burger { display: flex !important; }
+        }
+      `}</style>
+
+      <nav className="vn">
+        <Link href="/" className="vn-logo">
           Vaada
-          <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", letterSpacing: "3px", display: "block", marginTop: "2px", fontFamily: "DM Sans, sans-serif" }}>INDIA PROMISE TRACKER</span>
+          <span className="vn-sub">INDIA PROMISE TRACKER</span>
         </Link>
-
-        {/* Desktop links */}
-        {!isMobile && (
-          <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-            {NAV_LINKS.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                style={{
-                  color: link.href === "/leaderboard" ? "white" : pathname === link.href ? "#FF6B00" : "rgba(255,255,255,0.7)",
-                  textDecoration: "none",
-                  fontSize: "14px",
-                  fontWeight: link.href === "/leaderboard" ? "700" : "500",
-                  background: link.href === "/leaderboard" ? "#FF6B00" : "transparent",
-                  padding: link.href === "/leaderboard" ? "10px 20px" : "0",
-                  borderRadius: link.href === "/leaderboard" ? "8px" : "0",
-                }}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        {/* Hamburger */}
-        {isMobile && (
-          <button
-            onClick={() => setOpen(true)}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", flexDirection: "column", gap: "5px" }}
-          >
-            <span style={{ width: "24px", height: "2px", background: "white", display: "block", borderRadius: "2px" }}></span>
-            <span style={{ width: "24px", height: "2px", background: "white", display: "block", borderRadius: "2px" }}></span>
-            <span style={{ width: "24px", height: "2px", background: "white", display: "block", borderRadius: "2px" }}></span>
-          </button>
-        )}
-      </nav>
-
-      {/* Mobile fullscreen menu */}
-      {open && (
-        <div style={{
-          position: "fixed", inset: 0, background: "#0D1B3E", zIndex: 999,
-          display: "flex", flexDirection: "column", padding: "100px 40px 40px", gap: "8px",
-        }}>
-          <button
-            onClick={() => setOpen(false)}
-            style={{ position: "absolute", top: "20px", right: "24px", background: "none", border: "none", color: "white", fontSize: "32px", cursor: "pointer" }}
-          >
-            x
-          </button>
+        <div className="vn-links">
           {NAV_LINKS.map(link => (
             <Link
               key={link.href}
               href={link.href}
-              onClick={() => setOpen(false)}
-              style={{
-                color: pathname === link.href ? "#FF6B00" : "rgba(255,255,255,0.8)",
-                textDecoration: "none",
-                fontSize: "28px",
-                fontWeight: "700",
-                fontFamily: "Georgia, serif",
-                padding: "16px 0",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-              }}
+              className={`${link.href === "/leaderboard" ? "vn-cta" : "vn-link"} ${pathname === link.href ? "active" : ""}`}
             >
               {link.label}
             </Link>
           ))}
         </div>
-      )}
+        <button className="vn-burger" onClick={() => setOpen(true)}>
+          <span /><span /><span />
+        </button>
+      </nav>
+
+      <div className={`vn-mobile ${open ? "open" : ""}`}>
+        <button className="vn-close" onClick={() => setOpen(false)}>×</button>
+        {NAV_LINKS.map(link => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`vn-mlink ${pathname === link.href ? "active" : ""}`}
+            onClick={() => setOpen(false)}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </div>
     </>
   );
 }
