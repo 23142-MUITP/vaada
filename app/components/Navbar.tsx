@@ -30,10 +30,7 @@ export default function Navbar() {
         .navbar-cta.active { background: #e55a00; }
         .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
         .hamburger-line { width: 24px; height: 2px; background: white; border-radius: 2px; transition: all 0.3s; }
-        .hamburger-line.open-1 { transform: rotate(45deg) translate(5px, 5px); }
-        .hamburger-line.open-2 { opacity: 0; }
-        .hamburger-line.open-3 { transform: rotate(-45deg) translate(5px, -5px); }
-        .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0D1B3E; z-index: 99; flex-direction: column; padding: 100px 40px 40px; gap: 8px; }
+        .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0D1B3E; z-index: 999; flex-direction: column; padding: 100px 40px 40px; gap: 8px; }
         .mobile-menu.open { display: flex; }
         .mobile-link { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 28px; font-weight: 700; font-family: Georgia, serif; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.08); transition: color 0.15s; }
         .mobile-link:hover { color: #FF6B00; }
@@ -41,8 +38,8 @@ export default function Navbar() {
         .mobile-close { position: absolute; top: 20px; right: 24px; background: none; border: none; color: white; font-size: 32px; cursor: pointer; }
         @media (max-width: 768px) {
           .navbar { padding: 14px 20px; }
-          .navbar-links { display: none; }
-          .hamburger { display: flex; }
+          .navbar-links { display: none !important; }
+          .hamburger { display: flex !important; }
         }
       `}</style>
 
@@ -69,7 +66,6 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* MOBILE FULL SCREEN MENU */}
       <div className={`mobile-menu ${open ? "open" : ""}`}>
         <button className="mobile-close" onClick={() => setOpen(false)}>x</button>
         {NAV_LINKS.map(link => (
