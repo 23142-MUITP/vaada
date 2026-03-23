@@ -68,16 +68,11 @@ function PoliticiansContent() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Sans', sans-serif; background: #faf8f5; color: #0D1B3E; }
-        .nav { background: #0D1B3E; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { color: #FF6B00; font-size: 24px; font-weight: 700; font-family: Georgia, serif; text-decoration: none; }
-        .nav-links { display: flex; gap: 24px; }
-        .nav-links a { color: #fff; text-decoration: none; font-size: 14px; opacity: 0.8; }
-        .nav-links a:hover { opacity: 1; color: #FF6B00; }
         .hero { background: #0D1B3E; padding: 60px 40px 40px; color: white; }
         .hero h1 { font-family: Georgia, serif; font-size: 48px; margin-bottom: 12px; }
         .hero h1 span { color: #FF6B00; }
         .hero p { opacity: 0.7; font-size: 18px; }
-        .controls { padding: 24px 40px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .controls { padding: 24px 40px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 60px; z-index: 10; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
         .search-row { display: flex; gap: 12px; margin-bottom: 16px; }
         .search-input { flex: 1; padding: 12px 20px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; font-family: inherit; }
         .search-input:focus { border-color: #FF6B00; }
@@ -125,20 +120,8 @@ function PoliticiansContent() {
           .controls { padding: 16px 20px; position: static; }
           .grid { grid-template-columns: 1fr; padding: 0 20px 40px; }
           .results-info { padding: 12px 20px; }
-          .nav { padding: 16px 20px; }
-          .nav-links { gap: 16px; }
         }
       `}</style>
-
-      <nav className="nav">
-        <Link href="/" className="nav-logo">Vaada</Link>
-        <div className="nav-links">
-          <Link href="/politicians">Politicians</Link>
-          <Link href="/promises">Promises</Link>
-          <Link href="/states">By State</Link>
-          <Link href="/parties">By Party</Link>
-        </div>
-      </nav>
 
       <div className="hero">
         <h1>All <span>Politicians</span></h1>
@@ -147,13 +130,7 @@ function PoliticiansContent() {
 
       <div className="controls">
         <div className="search-row">
-          <input
-            className="search-input"
-            type="text"
-            placeholder="Search by name, party, state, role..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <input className="search-input" type="text" placeholder="Search by name, party, state, role..." value={search} onChange={e => setSearch(e.target.value)} />
           {(search || activeParty !== "All" || activeState !== "All") && (
             <button className="clear-btn" onClick={() => { setSearch(""); setActiveParty("All"); setActiveState("All"); }}>Clear filters</button>
           )}
