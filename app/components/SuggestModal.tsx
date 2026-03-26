@@ -1,49 +1,107 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import SuggestModal from "./components/SuggestModal";
+"use client";
+import { useState } from "react";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Vaada - India Promise Tracker",
-    template: "%s | Vaada"
-  },
-  description: "Track every promise made by Indian politicians. Hold your elected representatives accountable. India's first comprehensive politician accountability platform.",
-  keywords: ["India politician promises", "politician accountability", "election promises India", "neta tracker", "BJP promises", "INC promises", "political accountability India"],
-  authors: [{ name: "Vaada" }],
-  creator: "Vaada",
-  openGraph: {
-    type: "website",
-    locale: "en_IN",
-    url: "https://vaada-sigma.vercel.app",
-    siteName: "Vaada - India Promise Tracker",
-    title: "Vaada - India Promise Tracker",
-    description: "Track every promise made by Indian politicians. Vaada kiya tha. Nibhaya kya?",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Vaada - India Promise Tracker" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Vaada - India Promise Tracker",
-    description: "Track every promise made by Indian politicians. Vaada kiya tha. Nibhaya kya?",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true },
-  },
-};
+export default function SuggestModal() {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", suggestion: "" });
+  const [submitted, setSubmitted] = useState(false);
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const handleSubmit = async () => {
+    if (!form.suggestion.trim()) return;
+    setSubmitted(true);
+    setForm({ name: "", suggestion: "" });
+    setTimeout(() => {
+      setOpen(false);
+      setSubmitted(false);
+    }, 2000);
+  };
+
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
-      <body style={{ margin: 0, padding: 0, fontFamily: "'DM Sans', sans-serif" }}>
-        {children}
-        <SuggestModal />
-      </body>
-    </html>
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          background: "#FF6B00",
+          color: "white",
+          border: "none",
+          borderRadius: "50px",
+          padding: "14px 24px",
+          fontWeight: 700,
+          fontSize: "14px",
+          cursor: "pointer",
+          zIndex: 100,
+          boxShadow: "0 4px 20px rgba(255,107,0,0.4)",
+        }}
+      >
+        + Suggest a Change
+      </button>
+
+      {open && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
+          zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "20px",
+        }}>
+          <div style={{
+            background: "#0D1B3E", borderRadius: "16px", padding: "40px",
+            width: "100%", maxWidth: "480px", position: "relative",
+            border: "1px solid rgba(255,107,0,0.2)",
+          }}>
+            <button onClick={() => setOpen(false)} style={{
+              position: "absolute", top: "16px", right: "20px",
+              background: "none", border: "none", color: "white",
+              fontSize: "28px", cursor: "pointer",
+            }}>×</button>
+
+            {submitted ? (
+              <div style={{ textAlign: "center", color: "#12A854", fontSize: "20px", fontWeight: 700 }}>
+                Thank you! We will review your suggestion.
+              </div>
+            ) : (
+              <>
+                <h2 style={{ color: "#FF6B00", fontFamily: "Georgia, serif", marginTop: 0 }}>
+                  Suggest a Change
+                </h2>
+                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "14px", marginBottom: "24px" }}>
+                  Know a promise we missed? A status that changed? Tell us.
+                </p>
+                <input
+                  placeholder="Your name (optional)"
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                  style={{
+                    width: "100%", padding: "12px 16px", borderRadius: "8px",
+                    border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.05)",
+                    color: "white", fontSize: "14px", marginBottom: "12px", boxSizing: "border-box",
+                  }}
+                />
+                <textarea
+                  placeholder="Describe your suggestion..."
+                  value={form.suggestion}
+                  onChange={e => setForm({ ...form, suggestion: e.target.value })}
+                  rows={4}
+                  style={{
+                    width: "100%", padding: "12px 16px", borderRadius: "8px",
+                    border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.05)",
+                    color: "white", fontSize: "14px", marginBottom: "20px",
+                    boxSizing: "border-box", resize: "vertical",
+                  }}
+                />
+                <button onClick={handleSubmit} style={{
+                  width: "100%", background: "#FF6B00", color: "white",
+                  border: "none", borderRadius: "8px", padding: "14px",
+                  fontWeight: 700, fontSize: "16px", cursor: "pointer",
+                }}>
+                  Submit Suggestion
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
