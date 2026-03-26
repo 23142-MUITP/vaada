@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
 
 type PartyGroup = {
   party: string;
@@ -125,8 +124,6 @@ export default function PartiesPage() {
           .pol-right { flex-direction: column; align-items: flex-end; gap: 6px; }
         }
       `}</style>
-
-      <Navbar />
 
       <div className="hero">
         <h1>Politicians by Party</h1>
