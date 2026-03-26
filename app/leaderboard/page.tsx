@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
 
 type Politician = {
   id: string;
@@ -138,8 +137,6 @@ export default function Leaderboard() {
           .table-row > :nth-child(3), .table-row > :nth-child(5) { display: none; }
         }
       `}</style>
-
-      <Navbar />
 
       <div className="hero">
         <h1>Promise <span>Leaderboard</span></h1>
