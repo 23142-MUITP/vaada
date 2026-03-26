@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
 
 type Promise = {
   id: string;
@@ -108,8 +107,6 @@ export default function PromisesPage() {
           .stat-pill { padding: 12px 20px; }
         }
       `}</style>
-
-      <Navbar />
 
       <div className="hero">
         <h1>All Promises</h1>
