@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import Link from "next/link";
-import Navbar from "../../components/Navbar";
 
 type Politician = {
   id: string;
@@ -129,8 +128,6 @@ export default function PoliticianProfile() {
           .promises-header { flex-direction: column; align-items: flex-start; }
         }
       `}</style>
-
-      <Navbar />
 
       <div className="breadcrumb">
         <Link href="/">Home</Link> &rsaquo; <Link href="/politicians">Politicians</Link> &rsaquo; {politician.name}
