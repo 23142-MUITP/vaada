@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
+import Navbar from "../components/Navbar";
 
 type Promise = {
   id: string;
@@ -60,11 +61,6 @@ export default function PromisesPage() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Sans', sans-serif; background: #faf8f5; color: #0D1B3E; }
-        .nav { background: #0D1B3E; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { color: #FF6B00; font-size: 24px; font-weight: 700; font-family: Georgia, serif; text-decoration: none; }
-        .nav-links { display: flex; gap: 24px; }
-        .nav-links a { color: #fff; text-decoration: none; font-size: 14px; opacity: 0.8; }
-        .nav-links a:hover { opacity: 1; color: #FF6B00; }
         .hero { background: #0D1B3E; padding: 60px 40px 48px; }
         .hero h1 { font-family: Georgia, serif; font-size: 48px; color: white; margin-bottom: 12px; }
         .hero p { color: rgba(255,255,255,0.65); font-size: 18px; margin-bottom: 40px; }
@@ -105,7 +101,6 @@ export default function PromisesPage() {
         .empty h3 { font-family: Georgia, serif; font-size: 24px; margin-bottom: 8px; color: #ccc; }
         .loading { text-align: center; padding: 80px; color: #666; }
         @media (max-width: 768px) {
-          .nav { padding: 16px 20px; }
           .hero { padding: 40px 20px 32px; }
           .hero h1 { font-size: 32px; }
           .container { padding: 20px; }
@@ -114,15 +109,7 @@ export default function PromisesPage() {
         }
       `}</style>
 
-      <nav className="nav">
-        <Link href="/" className="nav-logo">Vaada</Link>
-        <div className="nav-links">
-          <Link href="/politicians">Politicians</Link>
-          <Link href="/promises">Promises</Link>
-          <Link href="/states">By State</Link>
-          <Link href="/parties">By Party</Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="hero">
         <h1>All Promises</h1>
@@ -183,7 +170,6 @@ export default function PromisesPage() {
             <div className="results-header">
               <div className="results-count">{filtered.length} promise{filtered.length !== 1 ? "s" : ""} found</div>
             </div>
-
             {filtered.length === 0 ? (
               <div className="empty">
                 <h3>No promises found</h3>
