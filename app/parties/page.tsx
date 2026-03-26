@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
+import Navbar from "../components/Navbar";
 
 type PartyGroup = {
   party: string;
@@ -88,11 +89,6 @@ export default function PartiesPage() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Sans', sans-serif; background: #faf8f5; color: #0D1B3E; }
-        .nav { background: #0D1B3E; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { color: #FF6B00; font-size: 24px; font-weight: 700; font-family: Georgia, serif; text-decoration: none; }
-        .nav-links { display: flex; gap: 24px; }
-        .nav-links a { color: #fff; text-decoration: none; font-size: 14px; opacity: 0.8; }
-        .nav-links a:hover { opacity: 1; color: #FF6B00; }
         .hero { background: #0D1B3E; padding: 60px 40px 48px; }
         .hero h1 { font-family: Georgia, serif; font-size: 48px; color: white; margin-bottom: 12px; }
         .hero p { color: rgba(255,255,255,0.65); font-size: 18px; }
@@ -123,7 +119,6 @@ export default function PartiesPage() {
         .empty { text-align: center; padding: 80px 20px; color: #999; }
         .loading { text-align: center; padding: 80px; color: #666; }
         @media (max-width: 768px) {
-          .nav { padding: 16px 20px; }
           .hero { padding: 40px 20px 32px; }
           .hero h1 { font-size: 32px; }
           .container { padding: 20px; }
@@ -131,15 +126,7 @@ export default function PartiesPage() {
         }
       `}</style>
 
-      <nav className="nav">
-        <Link href="/" className="nav-logo">Vaada</Link>
-        <div className="nav-links">
-          <Link href="/politicians">Politicians</Link>
-          <Link href="/promises">Promises</Link>
-          <Link href="/states">By State</Link>
-          <Link href="/parties">By Party</Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="hero">
         <h1>Politicians by Party</h1>
@@ -154,7 +141,6 @@ export default function PartiesPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-
         {loading ? (
           <div className="loading">Loading...</div>
         ) : filtered.length === 0 ? (
