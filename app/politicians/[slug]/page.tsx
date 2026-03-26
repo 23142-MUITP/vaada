@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import Link from "next/link";
+import Navbar from "../../components/Navbar";
 
 type Politician = {
   id: string;
@@ -70,11 +71,6 @@ export default function PoliticianProfile() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Sans', sans-serif; background: #faf8f5; color: #0D1B3E; }
-        .nav { background: #0D1B3E; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { color: #FF6B00; font-size: 24px; font-weight: 700; font-family: Georgia, serif; text-decoration: none; }
-        .nav-links { display: flex; gap: 24px; }
-        .nav-links a { color: #fff; text-decoration: none; font-size: 14px; opacity: 0.8; }
-        .nav-links a:hover { opacity: 1; color: #FF6B00; }
         .breadcrumb { padding: 16px 40px; font-size: 14px; color: #666; }
         .breadcrumb a { color: #FF6B00; text-decoration: none; }
         .hero { background: #0D1B3E; padding: 60px 40px; display: flex; gap: 40px; align-items: flex-start; }
@@ -130,20 +126,11 @@ export default function PoliticianProfile() {
           .grid { grid-template-columns: 1fr; }
           .content { padding: 20px; }
           .breadcrumb { padding: 16px 20px; }
-          .nav { padding: 16px 20px; }
           .promises-header { flex-direction: column; align-items: flex-start; }
         }
       `}</style>
 
-      <nav className="nav">
-        <Link href="/" className="nav-logo">Vaada</Link>
-        <div className="nav-links">
-          <Link href="/politicians">Politicians</Link>
-          <Link href="/promises">Promises</Link>
-          <Link href="/states">By State</Link>
-          <Link href="/parties">By Party</Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="breadcrumb">
         <Link href="/">Home</Link> &rsaquo; <Link href="/politicians">Politicians</Link> &rsaquo; {politician.name}
@@ -204,7 +191,6 @@ export default function PoliticianProfile() {
                 ))}
               </div>
             </div>
-
             {filteredPromises.length === 0 ? (
               <div className="empty-promises">
                 <p>No {filter.toLowerCase()} promises found.</p>
