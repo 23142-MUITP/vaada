@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
+import Navbar from "../components/Navbar";
 
 type Politician = {
   id: string;
@@ -80,12 +81,6 @@ export default function Leaderboard() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Sans', sans-serif; background: #faf8f5; color: #0D1B3E; }
-        .nav { background: #0D1B3E; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-logo { color: #FF6B00; font-size: 24px; font-weight: 700; font-family: Georgia, serif; text-decoration: none; }
-        .nav-links { display: flex; gap: 24px; align-items: center; }
-        .nav-links a { color: #fff; text-decoration: none; font-size: 14px; opacity: 0.8; }
-        .nav-links a:hover { opacity: 1; color: #FF6B00; }
-        .nav-active { color: #FF6B00 !important; opacity: 1 !important; font-weight: 700; }
         .hero { background: #0D1B3E; padding: 60px 40px 48px; }
         .hero h1 { font-family: Georgia, serif; font-size: 48px; color: white; margin-bottom: 12px; }
         .hero h1 span { color: #FF6B00; }
@@ -134,7 +129,6 @@ export default function Leaderboard() {
         .empty { text-align: center; padding: 60px; color: #999; }
         .loading { text-align: center; padding: 80px; color: #666; }
         @media (max-width: 768px) {
-          .nav { padding: 16px 20px; }
           .hero { padding: 40px 20px 32px; }
           .hero h1 { font-size: 32px; }
           .container { padding: 20px; }
@@ -145,16 +139,7 @@ export default function Leaderboard() {
         }
       `}</style>
 
-      <nav className="nav">
-        <Link href="/" className="nav-logo">Vaada</Link>
-        <div className="nav-links">
-          <Link href="/politicians">Politicians</Link>
-          <Link href="/promises">Promises</Link>
-          <Link href="/states">By State</Link>
-          <Link href="/parties">By Party</Link>
-          <Link href="/leaderboard" className="nav-active">Leaderboard</Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="hero">
         <h1>Promise <span>Leaderboard</span></h1>
@@ -203,8 +188,6 @@ export default function Leaderboard() {
         ) : (
           <>
             <div className="results-info">Showing <strong>{ranked.length}</strong> politicians ranked by promise-kept percentage</div>
-
-            {/* TOP 3 PODIUM */}
             {ranked.length >= 3 && (
               <div className="podium">
                 {ranked.slice(0, 3).map((p, i) => {
@@ -224,8 +207,6 @@ export default function Leaderboard() {
                 })}
               </div>
             )}
-
-            {/* FULL RANKINGS TABLE */}
             <div className="table">
               <div className="table-header">
                 <div>Rank</div>
