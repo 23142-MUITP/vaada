@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
 
 type StateGroup = {
   state: string;
@@ -95,8 +94,6 @@ export default function StatesPage() {
           .pol-right { flex-direction: column; align-items: flex-end; gap: 6px; }
         }
       `}</style>
-
-      <Navbar />
 
       <div className="hero">
         <h1>Politicians by State</h1>
