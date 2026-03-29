@@ -31,6 +31,10 @@ export default function Home() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [suggestText, setSuggestText] = useState("");
+  const [suggestName, setSuggestName] = useState("");
+  const [suggestDone, setSuggestDone] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -63,6 +67,15 @@ export default function Home() {
     else router.push("/politicians");
   }
 
+  async function handleSuggest() {
+    if (!suggestText.trim()) return;
+    await supabase.from("suggestions").insert({ name: suggestName, suggestion: suggestText });
+    setSuggestDone(true);
+    setSuggestText("");
+    setSuggestName("");
+    setTimeout(() => { setSuggestOpen(false); setSuggestDone(false); }, 2000);
+  }
+
   const totalTracked = stats ? stats.kept + stats.progress + stats.broken : 0;
   const keptPct = totalTracked ? Math.round((stats!.kept / totalTracked) * 100) : 0;
   const progressPct = totalTracked ? Math.round((stats!.progress / totalTracked) * 100) : 0;
@@ -92,7 +105,15 @@ export default function Home() {
         .features-section { padding: 100px 60px; background: #0D1B3E; }
         .features-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: white; margin-bottom: 60px; letter-spacing: -1px; }
         .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+        .community-section { padding: 100px 60px; background: #FFF8F0; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+        .community-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 20px; letter-spacing: -1px; }
         .footer { background: #080F22; padding: 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: #0D1B3E; border-radius: 16px; padding: 40px; width: 100%; max-width: 480px; position: relative; border: 1px solid rgba(255,107,0,0.2); }
+        .modal-input { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: white; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; outline: none; }
+        .modal-input:focus { border-color: #FF6B00; }
+        .modal-textarea { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: white; font-size: 14px; margin-bottom: 20px; box-sizing: border-box; font-family: inherit; outline: none; resize: vertical; }
+        .modal-textarea:focus { border-color: #FF6B00; }
         @media (max-width: 768px) {
           .hero { padding: 36px 20px 28px; grid-template-columns: 1fr; gap: 0; text-align: center; }
           .hero-left { max-width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -110,6 +131,8 @@ export default function Home() {
           .features-section { padding: 48px 20px; }
           .features-h2 { font-size: 28px !important; margin-bottom: 28px; }
           .features-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .community-section { padding: 48px 20px; grid-template-columns: 1fr !important; gap: 40px !important; }
+          .community-h2 { font-size: 28px !important; }
           .footer { padding: 40px 20px; flex-direction: column; gap: 16px; text-align: center; }
         }
       `}</style>
@@ -268,6 +291,33 @@ export default function Home() {
           </div>
         </section>
 
+        {/* COMMUNITY */}
+        <section className="community-section">
+          <div>
+            <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase", color: "#FF6B00", marginBottom: "16px" }}>Community</div>
+            <h2 className="community-h2">You are the<br />fact-checker</h2>
+            <p style={{ fontSize: "17px", color: "#555", lineHeight: "1.8", marginBottom: "32px" }}>Vaada is built by citizens, for citizens. If you know of a promise we have missed, a status that has changed, or a politician we have not added - tell us. Every suggestion is reviewed and added.</p>
+            <button onClick={() => setSuggestOpen(true)} style={{ background: "#FF6B00", color: "white", border: "none", padding: "16px 32px", borderRadius: "8px", fontSize: "15px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Submit Suggestion</button>
+          </div>
+          <div>
+            <div style={{ marginBottom: "16px", fontSize: "14px", fontWeight: "700", color: "#0D1B3E", letterSpacing: "1px", textTransform: "uppercase" }}>Recent community suggestions</div>
+            {[
+              { user: "@delhi_citizen", time: "2 hours ago", text: "The free bus for women promise should be marked as Kept - it has been running since Oct 2019 continuously", status: "Verified and Updated", color: "#12A854" },
+              { user: "@up_voter_2", time: "5 hours ago", text: "Please add Akhilesh Yadav's promise of laptop distribution to students from 2012 manifesto", status: "Under Review", color: "#f0a500" },
+              { user: "@mumbai_watch", time: "1 day ago", text: "Devendra Fadnavis needs to be added as Maharashtra CM with his new promises from Dec 2024", status: "Being Added", color: "#FF6B00" },
+            ].map((s, i) => (
+              <div key={i} style={{ background: "white", borderRadius: "12px", padding: "20px", marginBottom: "12px", border: "1px solid #eee" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ fontWeight: "700", fontSize: "13px", color: "#0D1B3E" }}>{s.user}</span>
+                  <span style={{ fontSize: "12px", color: "#999" }}>{s.time}</span>
+                </div>
+                <p style={{ fontSize: "14px", color: "#555", lineHeight: "1.6", marginBottom: "10px" }}>{s.text}</p>
+                <span style={{ fontSize: "12px", fontWeight: "700", color: s.color }}>{s.status}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* FOOTER */}
         <footer className="footer">
           <div>
@@ -282,6 +332,30 @@ export default function Home() {
         </footer>
 
       </main>
+
+      {/* SUGGEST MODAL */}
+      {suggestOpen && (
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setSuggestOpen(false); }}>
+          <div className="modal">
+            <button onClick={() => setSuggestOpen(false)} style={{ position: "absolute", top: "16px", right: "20px", background: "none", border: "none", color: "white", fontSize: "28px", cursor: "pointer" }}>×</button>
+            {suggestDone ? (
+              <div style={{ textAlign: "center", color: "#12A854", fontSize: "20px", fontWeight: "700", padding: "20px 0" }}>
+                Thank you! We will review your suggestion.
+              </div>
+            ) : (
+              <>
+                <h2 style={{ color: "#FF6B00", fontFamily: "Georgia, serif", marginTop: 0, marginBottom: "8px" }}>Suggest a Change</h2>
+                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "14px", marginBottom: "24px" }}>Know a promise we missed? A status that changed? Tell us.</p>
+                <input className="modal-input" placeholder="Your name (optional)" value={suggestName} onChange={e => setSuggestName(e.target.value)} />
+                <textarea className="modal-textarea" placeholder="Describe your suggestion..." value={suggestText} onChange={e => setSuggestText(e.target.value)} rows={4} />
+                <button onClick={handleSuggest} style={{ width: "100%", background: "#FF6B00", color: "white", border: "none", borderRadius: "8px", padding: "14px", fontWeight: "700", fontSize: "16px", cursor: "pointer", fontFamily: "inherit" }}>
+                  Submit Suggestion
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
