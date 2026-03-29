@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import WikiImage from "../components/WikiImage";
 
 type Politician = {
   id: string;
@@ -38,10 +39,6 @@ function PoliticiansContent() {
     }
     load();
   }, []);
-
-  function getInitials(name: string) {
-    return name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-  }
 
   function getScore(p: Politician) {
     if (!p.total_promises) return 0;
@@ -92,7 +89,6 @@ function PoliticiansContent() {
         .card { background: white; border-radius: 16px; padding: 24px; border: 1px solid #eee; transition: all 0.2s; text-decoration: none; color: inherit; display: block; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); border-color: #FF6B00; }
         .card-top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-        .avatar { width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #FF6B00, #e55a00); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; font-family: Georgia, serif; }
         .card-name { font-family: Georgia, serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #0D1B3E; }
         .card-role { font-size: 13px; color: #666; margin-bottom: 8px; }
         .card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -172,7 +168,7 @@ function PoliticiansContent() {
             return (
               <Link href={`/politicians/${p.name.toLowerCase().replace(/ /g, "-")}`} key={p.id} className="card">
                 <div className="card-top">
-                  <div className="avatar">{getInitials(p.name)}</div>
+                  <WikiImage name={p.name} size={56} borderRadius="12px" />
                   <div>
                     <div className="card-name">{p.name}</div>
                     <div className="card-role">{p.role}</div>
