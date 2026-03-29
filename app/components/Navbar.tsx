@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { href: "/promises", label: "Promises" },
   { href: "/states", label: "By State" },
   { href: "/parties", label: "By Party" },
+  { href: "/about", label: "About" },
   { href: "/leaderboard", label: "Leaderboard" },
 ];
 
