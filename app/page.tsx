@@ -4,6 +4,7 @@ import IndiaMap from "./IndiaMap";
 import { supabase } from "../lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import WikiImage from "./components/WikiImage";
 
 type Politician = {
   id: number;
@@ -52,10 +53,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  function getInitials(name: string) {
-    return name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
-  }
-
   function slugify(name: string) {
     return name?.toLowerCase().replace(/\s+/g, "-") || "";
   }
@@ -95,8 +92,6 @@ export default function Home() {
         .features-section { padding: 100px 60px; background: #0D1B3E; }
         .features-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: white; margin-bottom: 60px; letter-spacing: -1px; }
         .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
-        .community-section { padding: 100px 60px; background: #FFF8F0; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-        .community-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 20px; letter-spacing: -1px; }
         .footer { background: #080F22; padding: 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
         @media (max-width: 768px) {
           .hero { padding: 36px 20px 28px; grid-template-columns: 1fr; gap: 0; text-align: center; }
@@ -115,8 +110,6 @@ export default function Home() {
           .features-section { padding: 48px 20px; }
           .features-h2 { font-size: 28px !important; margin-bottom: 28px; }
           .features-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-          .community-section { padding: 48px 20px; grid-template-columns: 1fr !important; gap: 40px !important; }
-          .community-h2 { font-size: 28px !important; }
           .footer { padding: 40px 20px; flex-direction: column; gap: 16px; text-align: center; }
         }
       `}</style>
@@ -207,10 +200,8 @@ export default function Home() {
               const brPct = Math.round((p.promises_broken / total) * 100);
               return (
                 <Link key={p.id} href={`/politicians/${slugify(p.name)}`} className="politician-card">
-                  <div style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
-                    <div style={{ width: "64px", height: "64px", borderRadius: "12px", flexShrink: 0, background: "linear-gradient(135deg, #FF6B00, #0D1B3E)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "700", color: "white", fontFamily: "Georgia, serif" }}>
-                      {getInitials(p.name)}
-                    </div>
+                  <div style={{ display: "flex", gap: "16px", marginBottom: "24px", alignItems: "center" }}>
+                    <WikiImage name={p.name} size={64} borderRadius="12px" />
                     <div>
                       <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", fontWeight: "700", color: "#0D1B3E" }}>{p.name}</div>
                       <div style={{ fontSize: "13px", color: "#8A8FA8", marginTop: "4px" }}>{p.role}</div>
