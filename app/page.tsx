@@ -31,10 +31,6 @@ export default function Home() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [suggestOpen, setSuggestOpen] = useState(false);
-  const [suggestText, setSuggestText] = useState("");
-  const [suggestName, setSuggestName] = useState("");
-  const [suggestDone, setSuggestDone] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -67,13 +63,8 @@ export default function Home() {
     else router.push("/politicians");
   }
 
-  async function handleSuggest() {
-    if (!suggestText.trim()) return;
-    await supabase.from("suggestions").insert({ name: suggestName, suggestion: suggestText });
-    setSuggestDone(true);
-    setSuggestText("");
-    setSuggestName("");
-    setTimeout(() => { setSuggestOpen(false); setSuggestDone(false); }, 2000);
+  function openSuggestModal() {
+    document.querySelector<HTMLButtonElement>(".sm-btn")?.click();
   }
 
   const totalTracked = stats ? stats.kept + stats.progress + stats.broken : 0;
@@ -108,12 +99,6 @@ export default function Home() {
         .community-section { padding: 100px 60px; background: #FFF8F0; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
         .community-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 20px; letter-spacing: -1px; }
         .footer { background: #080F22; padding: 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: #0D1B3E; border-radius: 16px; padding: 40px; width: 100%; max-width: 480px; position: relative; border: 1px solid rgba(255,107,0,0.2); }
-        .modal-input { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: white; font-size: 14px; margin-bottom: 12px; box-sizing: border-box; font-family: inherit; outline: none; }
-        .modal-input:focus { border-color: #FF6B00; }
-        .modal-textarea { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: white; font-size: 14px; margin-bottom: 20px; box-sizing: border-box; font-family: inherit; outline: none; resize: vertical; }
-        .modal-textarea:focus { border-color: #FF6B00; }
         @media (max-width: 768px) {
           .hero { padding: 36px 20px 28px; grid-template-columns: 1fr; gap: 0; text-align: center; }
           .hero-left { max-width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -297,7 +282,7 @@ export default function Home() {
             <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase", color: "#FF6B00", marginBottom: "16px" }}>Community</div>
             <h2 className="community-h2">You are the<br />fact-checker</h2>
             <p style={{ fontSize: "17px", color: "#555", lineHeight: "1.8", marginBottom: "32px" }}>Vaada is built by citizens, for citizens. If you know of a promise we have missed, a status that has changed, or a politician we have not added - tell us. Every suggestion is reviewed and added.</p>
-            <button onClick={() => setSuggestOpen(true)} style={{ background: "#FF6B00", color: "white", border: "none", padding: "16px 32px", borderRadius: "8px", fontSize: "15px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Submit Suggestion</button>
+            <button onClick={openSuggestModal} style={{ background: "#FF6B00", color: "white", border: "none", padding: "16px 32px", borderRadius: "8px", fontSize: "15px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Submit Suggestion</button>
           </div>
           <div>
             <div style={{ marginBottom: "16px", fontSize: "14px", fontWeight: "700", color: "#0D1B3E", letterSpacing: "1px", textTransform: "uppercase" }}>Recent community suggestions</div>
@@ -332,30 +317,6 @@ export default function Home() {
         </footer>
 
       </main>
-
-      {/* SUGGEST MODAL */}
-      {suggestOpen && (
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setSuggestOpen(false); }}>
-          <div className="modal">
-            <button onClick={() => setSuggestOpen(false)} style={{ position: "absolute", top: "16px", right: "20px", background: "none", border: "none", color: "white", fontSize: "28px", cursor: "pointer" }}>×</button>
-            {suggestDone ? (
-              <div style={{ textAlign: "center", color: "#12A854", fontSize: "20px", fontWeight: "700", padding: "20px 0" }}>
-                Thank you! We will review your suggestion.
-              </div>
-            ) : (
-              <>
-                <h2 style={{ color: "#FF6B00", fontFamily: "Georgia, serif", marginTop: 0, marginBottom: "8px" }}>Suggest a Change</h2>
-                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "14px", marginBottom: "24px" }}>Know a promise we missed? A status that changed? Tell us.</p>
-                <input className="modal-input" placeholder="Your name (optional)" value={suggestName} onChange={e => setSuggestName(e.target.value)} />
-                <textarea className="modal-textarea" placeholder="Describe your suggestion..." value={suggestText} onChange={e => setSuggestText(e.target.value)} rows={4} />
-                <button onClick={handleSuggest} style={{ width: "100%", background: "#FF6B00", color: "white", border: "none", borderRadius: "8px", padding: "14px", fontWeight: "700", fontSize: "16px", cursor: "pointer", fontFamily: "inherit" }}>
-                  Submit Suggestion
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }
