@@ -18,39 +18,41 @@ type Politician = {
   total_promises: number;
 };
 
-type Stats = {
-  politicians: number;
-  promises: number;
-  kept: number;
-  progress: number;
-  broken: number;
+type NewsItem = {
+  title: string;
+  url: string;
 };
 
 export default function Home() {
   const [politicians, setPoliticians] = useState<Politician[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [news, setNews] = useState<NewsItem[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
-      const [{ data: pols }, { data: allPols }, { data: promises }] = await Promise.all([
-        supabase.from("politicians").select("*").limit(5),
-        supabase.from("politicians").select("promises_kept, promises_progress, promises_broken, total_promises"),
-        supabase.from("promises").select("status"),
-      ]);
+      const { data: pols } = await supabase.from("politicians").select("*").limit(5);
       if (pols) setPoliticians(pols);
-      if (allPols) {
-        const totalKept = allPols.reduce((a, p) => a + (p.promises_kept || 0), 0);
-        const totalProgress = allPols.reduce((a, p) => a + (p.promises_progress || 0), 0);
-        const totalBroken = allPols.reduce((a, p) => a + (p.promises_broken || 0), 0);
-        const totalPromises = promises?.length || 0;
-        setStats({ politicians: allPols.length, promises: totalPromises, kept: totalKept, progress: totalProgress, broken: totalBroken });
-      }
       setLoading(false);
     }
+
+    async function fetchNews() {
+      try {
+        const res = await fetch(
+          `https://newsapi.org/v2/everything?q=India+politics+parliament+politician&language=en&sortBy=publishedAt&pageSize=10&apiKey=39aab520cc844a48b318631dfccaaffa`
+        );
+        const data = await res.json();
+        if (data.articles) {
+          setNews(data.articles.map((a: { title: string; url: string }) => ({ title: a.title, url: a.url })));
+        }
+      } catch {
+        setNews([]);
+      }
+    }
+
     fetchData();
+    fetchNews();
   }, []);
 
   function slugify(name: string) {
@@ -67,25 +69,27 @@ export default function Home() {
     document.querySelector<HTMLButtonElement>(".sm-btn")?.click();
   }
 
-  const totalTracked = stats ? stats.kept + stats.progress + stats.broken : 0;
-  const keptPct = totalTracked ? Math.round((stats!.kept / totalTracked) * 100) : 0;
-  const progressPct = totalTracked ? Math.round((stats!.progress / totalTracked) * 100) : 0;
-  const brokenPct = totalTracked ? Math.round((stats!.broken / totalTracked) * 100) : 0;
-
   return (
     <>
       <style>{`
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow-x: hidden; }
+        .hero-strip { background: #FF6B00; padding: 10px 40px; text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; color: white; text-transform: uppercase; }
+        .news-ticker-wrap { background: #080F22; border-bottom: 1px solid rgba(255,107,0,0.2); padding: 0; overflow: hidden; display: flex; align-items: center; height: 40px; }
+        .news-ticker-label { background: #FF6B00; color: white; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; padding: 0 16px; height: 100%; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0; }
+        .news-ticker-track { display: flex; gap: 0; overflow: hidden; flex: 1; }
+        .news-ticker-inner { display: flex; gap: 48px; animation: ticker 40s linear infinite; white-space: nowrap; }
+        .news-ticker-inner:hover { animation-play-state: paused; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .news-item { font-size: 13px; color: rgba(255,255,255,0.75); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+        .news-item::before { content: "•"; color: #FF6B00; font-size: 16px; }
+        .news-item a { color: rgba(255,255,255,0.75); text-decoration: none; }
+        .news-item a:hover { color: #FF6B00; }
         .hero { padding: 70px 60px 60px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); overflow: hidden; }
         .hero-left { width: 100%; max-width: 560px; }
         .hero-h1 { font-family: Georgia, serif; font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin: 0 0 24px 0; }
         .hero-right { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
         .hero-map-container { width: 340px; height: 400px; overflow: hidden; margin: 0 auto; }
-        .stats-bar { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; background: rgba(255,255,255,0.03); }
-        .stat-item { padding: 24px 28px; }
-        .stat-num { font-family: Georgia, serif; font-size: 38px; font-weight: 700; }
-        .stat-label { margin-top: 6px; font-size: 12px; color: rgba(255,255,255,0.4); }
         .search-section { padding: 100px 60px; background: #FFF8F0; }
         .search-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 48px; letter-spacing: -1px; }
         .search-box { display: flex; max-width: 680px; background: white; border-radius: 12px; border: 2px solid rgba(13,27,62,0.12); overflow: hidden; box-shadow: 0 4px 40px rgba(0,0,0,0.08); }
@@ -100,14 +104,12 @@ export default function Home() {
         .community-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 20px; letter-spacing: -1px; }
         .footer { background: #080F22; padding: 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
         @media (max-width: 768px) {
+          .hero-strip { font-size: 11px; padding: 8px 20px; }
           .hero { padding: 36px 20px 28px; grid-template-columns: 1fr; gap: 0; text-align: center; }
           .hero-left { max-width: 100%; display: flex; flex-direction: column; align-items: center; }
           .hero-h1 { font-size: 38px; letter-spacing: -1px; margin-bottom: 16px; }
           .hero-right { width: 100%; margin-top: 32px; }
           .hero-map-container { width: 240px !important; height: 280px !important; }
-          .stats-bar { grid-template-columns: repeat(2, 1fr) !important; margin-top: 24px; }
-          .stat-item { padding: 16px; }
-          .stat-num { font-size: 24px !important; }
           .search-section { padding: 48px 20px; }
           .search-h2 { font-size: 28px !important; margin-bottom: 24px; }
           .search-box { flex-direction: column; }
@@ -123,6 +125,27 @@ export default function Home() {
       `}</style>
 
       <main style={{ fontFamily: "'DM Sans', sans-serif", background: "#0D1B3E", color: "white", minHeight: "100vh", margin: 0, padding: 0, overflowX: "hidden" }}>
+
+        {/* TOP STRIP */}
+        <div className="hero-strip">The only platform you need before you vote</div>
+
+        {/* NEWS TICKER */}
+        <div className="news-ticker-wrap">
+          <div className="news-ticker-label">🔴 Live</div>
+          <div className="news-ticker-track">
+            {news.length > 0 ? (
+              <div className="news-ticker-inner">
+                {[...news, ...news].map((item, i) => (
+                  <span key={i} className="news-item">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: "0 20px", fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>Loading latest political news...</div>
+            )}
+          </div>
+        </div>
 
         {/* HERO */}
         <section className="hero">
@@ -154,22 +177,6 @@ export default function Home() {
               <div style={{ fontSize: "12px", color: "#FF6B00", letterSpacing: "4px", marginTop: "8px", textTransform: "uppercase", fontWeight: "700" }}>The Public Wants to Know</div>
             </div>
           </div>
-
-          {/* LIVE STATS */}
-          <div className="stats-bar">
-            {[
-              { num: loading ? "..." : stats?.politicians.toString() || "0", label: "Politicians tracked", color: "#FF6B00" },
-              { num: loading ? "..." : stats?.promises.toString() || "0", label: "Promises recorded", color: "#FF6B00" },
-              { num: loading ? "..." : `${keptPct}%`, label: "Promises kept", color: "#12A854" },
-              { num: loading ? "..." : `${progressPct}%`, label: "In progress", color: "#F59E0B" },
-              { num: loading ? "..." : `${brokenPct}%`, label: "Broken / Abandoned", color: "#EF4444" },
-            ].map((stat, i) => (
-              <div key={i} className="stat-item" style={{ borderRight: i < 4 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
-                <div className="stat-num" style={{ color: stat.color }}>{stat.num}</div>
-                <div className="stat-label">{stat.label}</div>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* SEARCH */}
@@ -196,7 +203,7 @@ export default function Home() {
               <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase", color: "#FF6B00", marginBottom: "8px" }}>Featured Politicians</div>
               <h2 style={{ fontFamily: "Georgia, serif", fontSize: "32px", fontWeight: "700", color: "#0D1B3E", margin: 0 }}>Recently added</h2>
             </div>
-            <Link href="/politicians" style={{ color: "#FF6B00", fontWeight: "600", fontSize: "14px", textDecoration: "none" }}>View all {stats?.politicians || ""} politicians -&gt;</Link>
+            <Link href="/politicians" style={{ color: "#FF6B00", fontWeight: "600", fontSize: "14px", textDecoration: "none" }}>View all politicians -&gt;</Link>
           </div>
           <div className="cards-grid">
             {loading ? (
@@ -245,7 +252,7 @@ export default function Home() {
             <Link href="/politicians" style={{ background: "rgba(255,107,0,0.04)", borderRadius: "16px", border: "2px dashed rgba(255,107,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", textDecoration: "none" }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "36px", marginBottom: "12px" }}>+</div>
-                <div style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#0D1B3E", marginBottom: "8px" }}>{stats ? `${stats.politicians - 5}+ more` : "More politicians"}</div>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: "18px", fontWeight: "700", color: "#0D1B3E", marginBottom: "8px" }}>More politicians</div>
                 <div style={{ fontSize: "13px", color: "#8A8FA8", marginBottom: "16px" }}>Being added every day</div>
                 <span style={{ color: "#FF6B00", fontWeight: "600", fontSize: "14px" }}>View all -&gt;</span>
               </div>
