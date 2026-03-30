@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import IndiaMap from "./IndiaMap";
 import { supabase } from "../lib/supabase";
 import Link from "next/link";
@@ -25,23 +25,29 @@ type NewsItem = {
 
 export default function Home() {
   const [politicians, setPoliticians] = useState<Politician[]>([]);
+  const [allPoliticians, setAllPoliticians] = useState<Politician[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<Politician[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [news, setNews] = useState<NewsItem[]>([]);
   const router = useRouter();
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchData() {
-      const { data: pols } = await supabase.from("politicians").select("*").limit(5);
+      const [{ data: pols }, { data: all }] = await Promise.all([
+        supabase.from("politicians").select("*").limit(5),
+        supabase.from("politicians").select("*").order("name"),
+      ]);
       if (pols) setPoliticians(pols);
+      if (all) setAllPoliticians(all);
       setLoading(false);
     }
 
     async function fetchNews() {
       try {
-        const res = await fetch(
-          `https://gnews.io/api/v4/search?q=India+politics+parliament&lang=en&country=in&max=10&apikey=193be28d502ec79048f750f819fb69d5`
-        );
+        const res = await fetch("/api/news");
         const data = await res.json();
         if (data.articles) {
           setNews(data.articles.map((a: { title: string; url: string }) => ({ title: a.title, url: a.url })));
@@ -55,14 +61,49 @@ export default function Home() {
     fetchNews();
   }, []);
 
+  // Fuzzy search
+  useEffect(() => {
+    if (!search.trim()) { setSearchResults([]); setShowDropdown(false); return; }
+    const q = search.toLowerCase().replace(/\s+/g, "");
+    const results = allPoliticians.filter(p => {
+      const name = p.name.toLowerCase().replace(/\s+/g, "");
+      const party = p.party?.toLowerCase() || "";
+      const state = p.state?.toLowerCase() || "";
+      // exact contains
+      if (name.includes(q) || party.includes(q) || state.includes(q)) return true;
+      // fuzzy - check if all chars of query appear in order in name
+      let qi = 0;
+      for (let i = 0; i < name.length && qi < q.length; i++) {
+        if (name[i] === q[qi]) qi++;
+      }
+      return qi === q.length;
+    }).slice(0, 6);
+    setSearchResults(results);
+    setShowDropdown(results.length > 0);
+  }, [search, allPoliticians]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
   function slugify(name: string) {
     return name?.toLowerCase().replace(/\s+/g, "-") || "";
   }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (search.trim()) router.push(`/politicians?search=${encodeURIComponent(search.trim())}`);
-    else router.push("/politicians");
+    if (searchResults.length > 0) {
+      router.push(`/politicians/${slugify(searchResults[0].name)}`);
+    } else if (search.trim()) {
+      router.push(`/politicians?search=${encodeURIComponent(search.trim())}`);
+    }
   }
 
   function openSuggestModal() {
@@ -75,24 +116,35 @@ export default function Home() {
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .hero-strip { background: #FF6B00; padding: 10px 40px; text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; color: white; text-transform: uppercase; }
-        .hero { padding: 70px 60px 60px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); overflow: hidden; }
-        .hero-left { width: 100%; max-width: 560px; }
-        .hero-h1 { font-family: Georgia, serif; font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin: 0 0 24px 0; }
+        .hero { padding: 60px 60px 0; display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); overflow: hidden; }
+        .hero-left { width: 100%; max-width: 560px; padding-bottom: 0; }
+        .hero-h1 { font-family: Georgia, serif; font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin: 0 0 20px 0; }
         .hero-right { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
-        .hero-map-container { width: 340px; height: 400px; overflow: hidden; margin: 0 auto; }
-        .news-ticker-wrap { background: #080F22; border-top: 2px solid rgba(255,107,0,0.3); border-bottom: 2px solid rgba(255,107,0,0.3); padding: 0; overflow: hidden; display: flex; align-items: center; height: 44px; }
-        .news-ticker-label { background: #FF6B00; color: white; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; padding: 0 18px; height: 100%; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0; gap: 6px; }
+        .hero-map-container { width: 340px; height: 380px; overflow: hidden; margin: 0 auto; }
+        .hero-search-wrap { position: relative; margin-top: 28px; }
+        .hero-search-box { display: flex; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,107,0,0.4); border-radius: 10px; overflow: visible; backdrop-filter: blur(10px); }
+        .hero-search-input { flex: 1; padding: 16px 20px; background: transparent; border: none; outline: none; font-size: 15px; font-family: inherit; color: white; }
+        .hero-search-input::placeholder { color: rgba(255,255,255,0.35); }
+        .hero-search-btn { background: #FF6B00; color: white; border: none; padding: 0 24px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; border-radius: 0 8px 8px 0; white-space: nowrap; }
+        .search-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #0D1B3E; border: 1px solid rgba(255,107,0,0.3); border-radius: 10px; z-index: 100; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        .search-dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; transition: background 0.15s; text-decoration: none; color: white; }
+        .search-dropdown-item:hover { background: rgba(255,107,0,0.1); }
+        .search-dropdown-name { font-weight: 700; font-size: 14px; }
+        .search-dropdown-meta { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+        .news-ticker-wrap { background: #080F22; border-top: 2px solid rgba(255,107,0,0.4); border-bottom: 2px solid rgba(255,107,0,0.4); overflow: hidden; display: flex; align-items: center; height: 52px; }
+        .news-ticker-label { background: #FF6B00; color: white; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; padding: 0 20px; height: 100%; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0; gap: 8px; min-width: 110px; }
+        .news-live-dot { width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1.2s ease-in-out infinite; flex-shrink: 0; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
         .news-ticker-track { display: flex; overflow: hidden; flex: 1; }
-        .news-ticker-inner { display: flex; gap: 60px; animation: ticker 50s linear infinite; white-space: nowrap; padding-left: 40px; }
+        .news-ticker-inner { display: flex; gap: 60px; animation: ticker 60s linear infinite; white-space: nowrap; padding-left: 40px; align-items: center; }
         .news-ticker-inner:hover { animation-play-state: paused; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .news-item { font-size: 13px; color: rgba(255,255,255,0.8); white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; }
-        .news-item::before { content: "◆"; color: #FF6B00; font-size: 8px; }
-        .news-item a { color: rgba(255,255,255,0.8); text-decoration: none; transition: color 0.2s; }
+        .news-item { font-size: 13px; color: rgba(255,255,255,0.8); white-space: nowrap; display: inline-flex; align-items: center; gap: 12px; }
+        .news-item::before { content: "◆"; color: #FF6B00; font-size: 7px; flex-shrink: 0; }
+        .news-item a { color: rgba(255,255,255,0.8); text-decoration: none; }
         .news-item a:hover { color: #FF6B00; }
-        .search-section { padding: 100px 60px; background: #FFF8F0; }
+        .search-section { padding: 80px 60px; background: #FFF8F0; }
         .search-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 48px; letter-spacing: -1px; }
-        .search-box { display: flex; max-width: 680px; background: white; border-radius: 12px; border: 2px solid rgba(13,27,62,0.12); overflow: hidden; box-shadow: 0 4px 40px rgba(0,0,0,0.08); }
         .cards-section { padding: 0 60px 100px; background: #FFF8F0; }
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
         .politician-card { background: white; border-radius: 16px; padding: 28px; border: 1.5px solid rgba(13,27,62,0.06); cursor: pointer; text-decoration: none; display: block; transition: box-shadow 0.2s, transform 0.2s; }
@@ -105,14 +157,15 @@ export default function Home() {
         .footer { background: #080F22; padding: 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
         @media (max-width: 768px) {
           .hero-strip { font-size: 11px; padding: 8px 20px; letter-spacing: 1px; }
-          .hero { padding: 36px 20px 28px; grid-template-columns: 1fr; gap: 0; text-align: center; }
+          .hero { padding: 36px 20px 0; grid-template-columns: 1fr; gap: 0; text-align: center; }
           .hero-left { max-width: 100%; display: flex; flex-direction: column; align-items: center; }
           .hero-h1 { font-size: 38px; letter-spacing: -1px; margin-bottom: 16px; }
-          .hero-right { width: 100%; margin-top: 32px; }
+          .hero-right { width: 100%; margin-top: 24px; }
           .hero-map-container { width: 240px !important; height: 280px !important; }
+          .news-ticker-wrap { height: 44px; }
+          .news-ticker-label { min-width: 80px; padding: 0 12px; font-size: 10px; }
           .search-section { padding: 48px 20px; }
           .search-h2 { font-size: 28px !important; margin-bottom: 24px; }
-          .search-box { flex-direction: column; }
           .cards-section { padding: 0 20px 48px; }
           .cards-grid { grid-template-columns: 1fr !important; }
           .features-section { padding: 48px 20px; }
@@ -132,39 +185,71 @@ export default function Home() {
         {/* HERO */}
         <section className="hero">
           <div className="hero-left">
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,107,0,0.12)", border: "1px solid rgba(255,107,0,0.3)", padding: "6px 16px", borderRadius: "100px", marginBottom: "28px", fontSize: "12px", fontWeight: "600", letterSpacing: "1.5px", color: "#FF6B00" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,107,0,0.12)", border: "1px solid rgba(255,107,0,0.3)", padding: "6px 16px", borderRadius: "100px", marginBottom: "24px", fontSize: "12px", fontWeight: "600", letterSpacing: "1.5px", color: "#FF6B00" }}>
               By the people, for the people
             </div>
             <h1 className="hero-h1">
               <span style={{ display: "block" }}>Vaada kiya tha.</span>
               <span style={{ display: "block", color: "#FF6B00" }}>Nibhaya kya?</span>
             </h1>
-            <p style={{ fontSize: "17px", lineHeight: "1.7", color: "rgba(255,255,255,0.55)", maxWidth: "460px", fontWeight: "300", margin: "0 0 36px 0" }}>
+            <p style={{ fontSize: "17px", lineHeight: "1.7", color: "rgba(255,255,255,0.55)", maxWidth: "460px", fontWeight: "300", margin: "0 0 0 0" }}>
               India&apos;s first comprehensive politician accountability platform. Track promises made by every politician - from your local corporator to the Prime Minister.
             </p>
-            <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
-              <Link href="/politicians" style={{ background: "#FF6B00", color: "white", padding: "14px 32px", borderRadius: "8px", fontSize: "15px", fontWeight: "600", textDecoration: "none", boxShadow: "0 4px 24px rgba(255,107,0,0.35)" }}>Browse Politicians</Link>
-              <Link href="/promises" style={{ color: "rgba(255,255,255,0.65)", fontSize: "15px", textDecoration: "none" }}>See all promises -&gt;</Link>
+
+            {/* INLINE SEARCH */}
+            <div className="hero-search-wrap" ref={searchRef}>
+              <form onSubmit={handleSearch}>
+                <div className="hero-search-box">
+                  <input
+                    className="hero-search-input"
+                    type="text"
+                    placeholder="Search any politician..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                    autoComplete="off"
+                  />
+                  <button type="submit" className="hero-search-btn">Search</button>
+                </div>
+              </form>
+              {showDropdown && (
+                <div className="search-dropdown">
+                  {searchResults.map(p => (
+                    <Link
+                      key={p.id}
+                      href={`/politicians/${slugify(p.name)}`}
+                      className="search-dropdown-item"
+                      onClick={() => { setShowDropdown(false); setSearch(""); }}
+                    >
+                      <WikiImage name={p.name} size={36} borderRadius="8px" />
+                      <div>
+                        <div className="search-dropdown-name">{p.name}</div>
+                        <div className="search-dropdown-meta">{p.party} - {p.state}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           <div className="hero-right">
-            <div style={{ textAlign: "center", marginBottom: "18px", width: "100%" }}>
+            <div style={{ textAlign: "center", marginBottom: "12px", width: "100%" }}>
               <div style={{ fontSize: "15px", fontWeight: "800", letterSpacing: "5px", color: "#FF6B00", textTransform: "uppercase" }}>Every State. Every Promise.</div>
-              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", fontStyle: "italic", marginTop: "8px" }}>28 states. 8 union territories. Zero accountability - until now.</div>
+              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", fontStyle: "italic", marginTop: "6px" }}>28 states. 8 union territories. Zero accountability - until now.</div>
             </div>
             <div className="hero-map-container"><IndiaMap /></div>
-            <div style={{ textAlign: "center", marginTop: "18px", width: "100%" }}>
-              <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", letterSpacing: "3px", fontFamily: "Georgia, serif" }}>जनता जानना चाहती है</div>
-              <div style={{ fontSize: "12px", color: "#FF6B00", letterSpacing: "4px", marginTop: "8px", textTransform: "uppercase", fontWeight: "700" }}>The Public Wants to Know</div>
+            <div style={{ textAlign: "center", marginTop: "12px", width: "100%" }}>
+              <div style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", letterSpacing: "3px", fontFamily: "Georgia, serif" }}>जनता जानना चाहती है</div>
+              <div style={{ fontSize: "12px", color: "#FF6B00", letterSpacing: "4px", marginTop: "6px", textTransform: "uppercase", fontWeight: "700" }}>The Public Wants to Know</div>
             </div>
           </div>
         </section>
 
-        {/* NEWS TICKER - below hero */}
+        {/* NEWS TICKER */}
         <div className="news-ticker-wrap">
           <div className="news-ticker-label">
-            <span style={{ fontSize: "8px", color: "#ff4444", animation: "pulse 1s infinite" }}>●</span>
+            <div className="news-live-dot"></div>
             Live News
           </div>
           <div className="news-ticker-track">
@@ -184,25 +269,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* SEARCH */}
-        <section className="search-section">
-          <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase", color: "#FF6B00", marginBottom: "16px" }}>Find Your Neta</div>
-          <h2 className="search-h2">Search any politician<br />across India</h2>
-          <form onSubmit={handleSearch}>
-            <div className="search-box">
-              <input type="text" placeholder="Search by name, party, state or constituency..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, padding: "18px 24px", border: "none", outline: "none", fontSize: "16px", fontFamily: "inherit", color: "#0D1B3E" }} />
-              <button type="submit" style={{ background: "#FF6B00", color: "white", border: "none", padding: "0 32px", fontSize: "15px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Search</button>
-            </div>
-          </form>
-          <div style={{ marginTop: "20px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            {["All", "National", "State", "BJP", "INC", "AAP", "SP", "TMC"].map(f => (
-              <Link key={f} href={f === "All" ? "/politicians" : `/politicians?filter=${f}`} style={{ padding: "8px 18px", borderRadius: "100px", background: f === "All" ? "#FF6B00" : "white", color: f === "All" ? "white" : "#0D1B3E", border: "1.5px solid", borderColor: f === "All" ? "#FF6B00" : "rgba(13,27,62,0.12)", fontSize: "13px", fontWeight: "500", textDecoration: "none" }}>{f}</Link>
-            ))}
-          </div>
-        </section>
-
         {/* POLITICIAN CARDS */}
-        <section className="cards-section">
+        <section style={{ padding: "60px 60px 80px", background: "#FFF8F0" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
             <div>
               <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase", color: "#FF6B00", marginBottom: "8px" }}>Featured Politicians</div>
