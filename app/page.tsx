@@ -40,7 +40,7 @@ export default function Home() {
     async function fetchNews() {
       try {
         const res = await fetch(
-          `https://newsapi.org/v2/everything?q=India+politics+parliament+politician&language=en&sortBy=publishedAt&pageSize=10&apiKey=39aab520cc844a48b318631dfccaaffa`
+          `https://gnews.io/api/v4/search?q=India+politics+parliament&lang=en&country=in&max=10&apikey=193be28d502ec79048f750f819fb69d5`
         );
         const data = await res.json();
         if (data.articles) {
@@ -75,21 +75,21 @@ export default function Home() {
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .hero-strip { background: #FF6B00; padding: 10px 40px; text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; color: white; text-transform: uppercase; }
-        .news-ticker-wrap { background: #080F22; border-bottom: 1px solid rgba(255,107,0,0.2); padding: 0; overflow: hidden; display: flex; align-items: center; height: 40px; }
-        .news-ticker-label { background: #FF6B00; color: white; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; padding: 0 16px; height: 100%; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0; }
-        .news-ticker-track { display: flex; gap: 0; overflow: hidden; flex: 1; }
-        .news-ticker-inner { display: flex; gap: 48px; animation: ticker 40s linear infinite; white-space: nowrap; }
-        .news-ticker-inner:hover { animation-play-state: paused; }
-        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .news-item { font-size: 13px; color: rgba(255,255,255,0.75); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
-        .news-item::before { content: "•"; color: #FF6B00; font-size: 16px; }
-        .news-item a { color: rgba(255,255,255,0.75); text-decoration: none; }
-        .news-item a:hover { color: #FF6B00; }
         .hero { padding: 70px 60px 60px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); overflow: hidden; }
         .hero-left { width: 100%; max-width: 560px; }
         .hero-h1 { font-family: Georgia, serif; font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin: 0 0 24px 0; }
         .hero-right { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
         .hero-map-container { width: 340px; height: 400px; overflow: hidden; margin: 0 auto; }
+        .news-ticker-wrap { background: #080F22; border-top: 2px solid rgba(255,107,0,0.3); border-bottom: 2px solid rgba(255,107,0,0.3); padding: 0; overflow: hidden; display: flex; align-items: center; height: 44px; }
+        .news-ticker-label { background: #FF6B00; color: white; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; padding: 0 18px; height: 100%; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0; gap: 6px; }
+        .news-ticker-track { display: flex; overflow: hidden; flex: 1; }
+        .news-ticker-inner { display: flex; gap: 60px; animation: ticker 50s linear infinite; white-space: nowrap; padding-left: 40px; }
+        .news-ticker-inner:hover { animation-play-state: paused; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .news-item { font-size: 13px; color: rgba(255,255,255,0.8); white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; }
+        .news-item::before { content: "◆"; color: #FF6B00; font-size: 8px; }
+        .news-item a { color: rgba(255,255,255,0.8); text-decoration: none; transition: color 0.2s; }
+        .news-item a:hover { color: #FF6B00; }
         .search-section { padding: 100px 60px; background: #FFF8F0; }
         .search-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 48px; letter-spacing: -1px; }
         .search-box { display: flex; max-width: 680px; background: white; border-radius: 12px; border: 2px solid rgba(13,27,62,0.12); overflow: hidden; box-shadow: 0 4px 40px rgba(0,0,0,0.08); }
@@ -104,7 +104,7 @@ export default function Home() {
         .community-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 20px; letter-spacing: -1px; }
         .footer { background: #080F22; padding: 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
         @media (max-width: 768px) {
-          .hero-strip { font-size: 11px; padding: 8px 20px; }
+          .hero-strip { font-size: 11px; padding: 8px 20px; letter-spacing: 1px; }
           .hero { padding: 36px 20px 28px; grid-template-columns: 1fr; gap: 0; text-align: center; }
           .hero-left { max-width: 100%; display: flex; flex-direction: column; align-items: center; }
           .hero-h1 { font-size: 38px; letter-spacing: -1px; margin-bottom: 16px; }
@@ -128,24 +128,6 @@ export default function Home() {
 
         {/* TOP STRIP */}
         <div className="hero-strip">The only platform you need before you vote</div>
-
-        {/* NEWS TICKER */}
-        <div className="news-ticker-wrap">
-          <div className="news-ticker-label">🔴 Live</div>
-          <div className="news-ticker-track">
-            {news.length > 0 ? (
-              <div className="news-ticker-inner">
-                {[...news, ...news].map((item, i) => (
-                  <span key={i} className="news-item">
-                    <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a>
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div style={{ padding: "0 20px", fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>Loading latest political news...</div>
-            )}
-          </div>
-        </div>
 
         {/* HERO */}
         <section className="hero">
@@ -178,6 +160,29 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* NEWS TICKER - below hero */}
+        <div className="news-ticker-wrap">
+          <div className="news-ticker-label">
+            <span style={{ fontSize: "8px", color: "#ff4444", animation: "pulse 1s infinite" }}>●</span>
+            Live News
+          </div>
+          <div className="news-ticker-track">
+            {news.length > 0 ? (
+              <div className="news-ticker-inner">
+                {[...news, ...news].map((item, i) => (
+                  <span key={i} className="news-item">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: "0 24px", fontSize: "13px", color: "rgba(255,255,255,0.35)", fontStyle: "italic" }}>
+                Loading latest Indian political news...
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* SEARCH */}
         <section className="search-section">
