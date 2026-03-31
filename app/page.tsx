@@ -113,7 +113,7 @@ export default function Home() {
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .hero-strip { background: #FF6B00; padding: 10px 40px; text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; color: white; text-transform: uppercase; }
         .hero-outer { background: #0D1B3E; display: flex; flex-direction: column; }
-        .hero { padding: 40px 60px 40px; display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); }
+        .hero { padding: 40px 60px 80px; display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); }
         .hero-left { width: 100%; max-width: 560px; padding-bottom: 40px; }
         .hero-h1 { font-family: Georgia, serif; font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin: 0 0 20px 0; }
         .hero-right { display: flex; flex-direction: column; align-items: center; width: 100%; }
