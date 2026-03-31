@@ -61,6 +61,7 @@ export default function Home() {
     fetchNews();
   }, []);
 
+  // Fuzzy search
   useEffect(() => {
     if (!search.trim()) { setSearchResults([]); setShowDropdown(false); return; }
     const q = search.toLowerCase().replace(/\s+/g, "");
@@ -68,7 +69,9 @@ export default function Home() {
       const name = p.name.toLowerCase().replace(/\s+/g, "");
       const party = p.party?.toLowerCase() || "";
       const state = p.state?.toLowerCase() || "";
+      // exact contains
       if (name.includes(q) || party.includes(q) || state.includes(q)) return true;
+      // fuzzy - check if all chars of query appear in order in name
       let qi = 0;
       for (let i = 0; i < name.length && qi < q.length; i++) {
         if (name[i] === q[qi]) qi++;
@@ -79,6 +82,7 @@ export default function Home() {
     setShowDropdown(results.length > 0);
   }, [search, allPoliticians]);
 
+  // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -112,11 +116,11 @@ export default function Home() {
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .hero-strip { background: #FF6B00; padding: 10px 40px; text-align: center; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; color: white; text-transform: uppercase; }
-        .hero { padding: 36px 60px 0; display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); overflow: hidden; }
-        .hero-left { width: 100%; max-width: 560px; }
+        .hero { padding: 60px 60px 0; display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 40px; background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(255,107,0,0.12) 0%, transparent 60%); overflow: hidden; }
+        .hero-left { width: 100%; max-width: 560px; padding-bottom: 0; }
         .hero-h1 { font-family: Georgia, serif; font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin: 0 0 20px 0; }
-        .hero-right { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; padding-top: 0; }
-        .hero-map-container { width: 320px; height: 260px; overflow: hidden; margin: 0 auto; }
+        .hero-right { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+        .hero-map-container { width: 340px; height: 380px; overflow: hidden; margin: 0 auto; }
         .hero-search-wrap { position: relative; margin-top: 28px; }
         .hero-search-box { display: flex; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,107,0,0.4); border-radius: 10px; overflow: visible; backdrop-filter: blur(10px); }
         .hero-search-input { flex: 1; padding: 16px 20px; background: transparent; border: none; outline: none; font-size: 15px; font-family: inherit; color: white; }
@@ -139,6 +143,9 @@ export default function Home() {
         .news-item::before { content: "◆"; color: #FF6B00; font-size: 7px; flex-shrink: 0; }
         .news-item a { color: rgba(255,255,255,0.8); text-decoration: none; }
         .news-item a:hover { color: #FF6B00; }
+        .search-section { padding: 80px 60px; background: #FFF8F0; }
+        .search-h2 { font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #0D1B3E; margin-bottom: 48px; letter-spacing: -1px; }
+        .cards-section { padding: 0 60px 100px; background: #FFF8F0; }
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
         .politician-card { background: white; border-radius: 16px; padding: 28px; border: 1.5px solid rgba(13,27,62,0.06); cursor: pointer; text-decoration: none; display: block; transition: box-shadow 0.2s, transform 0.2s; }
         .politician-card:hover { box-shadow: 0 8px 40px rgba(0,0,0,0.12); transform: translateY(-2px); }
@@ -150,13 +157,16 @@ export default function Home() {
         .footer { background: #080F22; padding: 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); }
         @media (max-width: 768px) {
           .hero-strip { font-size: 11px; padding: 8px 20px; letter-spacing: 1px; }
-          .hero { padding: 28px 20px 0; grid-template-columns: 1fr; gap: 0; text-align: center; }
+          .hero { padding: 36px 20px 0; grid-template-columns: 1fr; gap: 0; text-align: center; }
           .hero-left { max-width: 100%; display: flex; flex-direction: column; align-items: center; }
           .hero-h1 { font-size: 38px; letter-spacing: -1px; margin-bottom: 16px; }
-          .hero-right { width: 100%; margin-top: 20px; }
-          .hero-map-container { width: 220px !important; height: 200px !important; }
+          .hero-right { width: 100%; margin-top: 24px; }
+          .hero-map-container { width: 240px !important; height: 280px !important; }
           .news-ticker-wrap { height: 44px; }
           .news-ticker-label { min-width: 80px; padding: 0 12px; font-size: 10px; }
+          .search-section { padding: 48px 20px; }
+          .search-h2 { font-size: 28px !important; margin-bottom: 24px; }
+          .cards-section { padding: 0 20px 48px; }
           .cards-grid { grid-template-columns: 1fr !important; }
           .features-section { padding: 48px 20px; }
           .features-h2 { font-size: 28px !important; margin-bottom: 28px; }
@@ -182,9 +192,11 @@ export default function Home() {
               <span style={{ display: "block" }}>Vaada kiya tha.</span>
               <span style={{ display: "block", color: "#FF6B00" }}>Nibhaya kya?</span>
             </h1>
-            <p style={{ fontSize: "17px", lineHeight: "1.7", color: "rgba(255,255,255,0.55)", maxWidth: "460px", fontWeight: "300", margin: "0" }}>
+            <p style={{ fontSize: "17px", lineHeight: "1.7", color: "rgba(255,255,255,0.55)", maxWidth: "460px", fontWeight: "300", margin: "0 0 0 0" }}>
               India&apos;s first comprehensive politician accountability platform. Track promises made by every politician - from your local corporator to the Prime Minister.
             </p>
+
+            {/* INLINE SEARCH */}
             <div className="hero-search-wrap" ref={searchRef}>
               <form onSubmit={handleSearch}>
                 <div className="hero-search-box">
@@ -222,14 +234,14 @@ export default function Home() {
           </div>
 
           <div className="hero-right">
-            <div style={{ textAlign: "center", marginBottom: "4px", width: "100%" }}>
+            <div style={{ textAlign: "center", marginBottom: "12px", width: "100%" }}>
               <div style={{ fontSize: "15px", fontWeight: "800", letterSpacing: "5px", color: "#FF6B00", textTransform: "uppercase" }}>Every State. Every Promise.</div>
-              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", fontStyle: "italic", marginTop: "4px" }}>28 states. 8 union territories. Zero accountability - until now.</div>
+              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", fontStyle: "italic", marginTop: "6px" }}>28 states. 8 union territories. Zero accountability - until now.</div>
             </div>
             <div className="hero-map-container"><IndiaMap /></div>
-            <div style={{ textAlign: "center", marginTop: "2px", width: "100%" }}>
+            <div style={{ textAlign: "center", marginTop: "12px", width: "100%" }}>
               <div style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", letterSpacing: "3px", fontFamily: "Georgia, serif" }}>जनता जानना चाहती है</div>
-              <div style={{ fontSize: "12px", color: "#FF6B00", letterSpacing: "4px", marginTop: "4px", textTransform: "uppercase", fontWeight: "700" }}>The Public Wants to Know</div>
+              <div style={{ fontSize: "12px", color: "#FF6B00", letterSpacing: "4px", marginTop: "6px", textTransform: "uppercase", fontWeight: "700" }}>The Public Wants to Know</div>
             </div>
           </div>
         </section>
@@ -257,12 +269,12 @@ export default function Home() {
           </div>
         </div>
 
-        {/* FEATURED POLITICIANS */}
+        {/* POLITICIAN CARDS */}
         <section style={{ padding: "60px 60px 80px", background: "#FFF8F0" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
             <div>
-              <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase", color: "#FF6B00", marginBottom: "10px" }}>Featured Politicians</div>
-              <h2 style={{ fontFamily: "Georgia, serif", fontSize: "40px", fontWeight: "700", color: "#0D1B3E", margin: 0, letterSpacing: "-1px" }}>Track your neta</h2>
+              <div style={{ fontSize: "11px", fontWeight: "700", letterSpacing: "3px", textTransform: "uppercase", color: "#FF6B00", marginBottom: "8px" }}>Featured Politicians</div>
+              <h2 style={{ fontFamily: "Georgia, serif", fontSize: "32px", fontWeight: "700", color: "#0D1B3E", margin: 0 }}>Recently added</h2>
             </div>
             <Link href="/politicians" style={{ color: "#FF6B00", fontWeight: "600", fontSize: "14px", textDecoration: "none" }}>View all politicians -&gt;</Link>
           </div>
