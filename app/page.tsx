@@ -120,7 +120,7 @@ export default function Home() {
         .hero-left { width: 100%; max-width: 560px; padding-bottom: 0; }
         .hero-h1 { font-family: Georgia, serif; font-size: 72px; font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin: 0 0 20px 0; }
         .hero-right { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
-        .hero-map-container { width: 340px; height: 380px; overflow: hidden; margin: 0 auto; }
+        .hero-map-container { width: 320px; height: 220px; overflow: hidden; margin: 0 auto; }
         .hero-search-wrap { position: relative; margin-top: 28px; }
         .hero-search-box { display: flex; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,107,0,0.4); border-radius: 10px; overflow: visible; backdrop-filter: blur(10px); }
         .hero-search-input { flex: 1; padding: 16px 20px; background: transparent; border: none; outline: none; font-size: 15px; font-family: inherit; color: white; }
