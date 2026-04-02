@@ -2,76 +2,115 @@
 import { useState } from "react";
 
 export default function ImportPage() {
-  const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{added: number, skipped: number, total: number} | null>(null);
+  const [polStatus, setPolStatus] = useState("");
+  const [polLoading, setPolLoading] = useState(false);
+  const [polResult, setPolResult] = useState<{added: number, skipped: number, total: number} | null>(null);
+  const [promiseStatus, setPromiseStatus] = useState("");
+  const [promiseLoading, setPromiseLoading] = useState(false);
+  const [promiseResult, setPromiseResult] = useState<{processed: number, promises_added: number} | null>(null);
+  const [batchSize, setBatchSize] = useState(5);
 
-  async function runImport() {
-    setLoading(true);
-    setStatus("Importing politicians from Lok Sabha and Rajya Sabha data...");
+  async function runPoliticianImport() {
+    setPolLoading(true);
+    setPolStatus("Importing politicians...");
     try {
       const res = await fetch("/api/import-politicians");
       const data = await res.json();
       if (data.success) {
-        setResult(data);
-        setStatus(data.message);
+        setPolResult(data);
+        setPolStatus(data.message);
       } else {
-        setStatus("Error: " + data.error);
+        setPolStatus("Error: " + data.error);
       }
     } catch {
-      setStatus("Import failed - check console");
+      setPolStatus("Import failed");
     }
-    setLoading(false);
+    setPolLoading(false);
+  }
+
+  async function runPromiseImport() {
+    setPromiseLoading(true);
+    setPromiseStatus(`Generating promises for ${batchSize} politicians using Groq AI...`);
+    try {
+      const res = await fetch(`/api/import-promises?limit=${batchSize}`);
+      const data = await res.json();
+      if (data.success) {
+        setPromiseResult(data);
+        setPromiseStatus(data.message);
+      } else {
+        setPromiseStatus("Error: " + data.error);
+      }
+    } catch {
+      setPromiseStatus("Import failed");
+    }
+    setPromiseLoading(false);
   }
 
   return (
-    <div style={{ padding: "40px", fontFamily: "DM Sans, sans-serif", maxWidth: "700px", margin: "0 auto" }}>
-      <h1 style={{ fontFamily: "Georgia, serif", color: "#0D1B3E", marginBottom: "8px" }}>Auto Import Politicians</h1>
-      <p style={{ color: "#666", marginBottom: "32px" }}>Automatically import all Lok Sabha and Rajya Sabha MPs into the database. Existing politicians will be updated with new data - no duplicates.</p>
+    <div style={{ padding: "40px", fontFamily: "DM Sans, sans-serif", maxWidth: "800px", margin: "0 auto" }}>
+      <h1 style={{ fontFamily: "Georgia, serif", color: "#0D1B3E", marginBottom: "4px" }}>Data Automation</h1>
+      <p style={{ color: "#666", marginBottom: "40px" }}>Automatically import politicians and generate promises using AI.</p>
 
-      <div style={{ background: "#f8f8f8", borderRadius: "12px", padding: "24px", marginBottom: "24px", border: "1px solid #eee" }}>
-        <div style={{ fontWeight: "700", marginBottom: "8px", color: "#0D1B3E" }}>What this imports:</div>
-        <div style={{ fontSize: "14px", color: "#555", lineHeight: "2" }}>
-          - Current Lok Sabha MPs (18th Lok Sabha)<br/>
-          - Rajya Sabha members<br/>
-          - State Chief Ministers<br/>
-          - Key opposition leaders<br/>
-          - Party presidents
+      {/* STEP 1 */}
+      <div style={{ background: "white", borderRadius: "16px", padding: "28px", border: "1px solid #eee", marginBottom: "24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+          <div style={{ background: "#FF6B00", color: "white", width: "28px", height: "28px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "14px", flexShrink: 0 }}>1</div>
+          <h2 style={{ fontFamily: "Georgia, serif", color: "#0D1B3E", margin: 0, fontSize: "20px" }}>Import Politicians</h2>
         </div>
+        <p style={{ color: "#666", fontSize: "14px", marginBottom: "20px", marginLeft: "40px" }}>Imports Lok Sabha MPs, Rajya Sabha members, CMs and key political leaders. Safe to run multiple times - no duplicates.</p>
+        <button onClick={runPoliticianImport} disabled={polLoading} style={{ background: polLoading ? "#ccc" : "#0D1B3E", color: "white", border: "none", padding: "12px 28px", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: polLoading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
+          {polLoading ? "Importing..." : "Run Politician Import"}
+        </button>
+        {polStatus && (
+          <div style={{ marginTop: "16px", padding: "16px", background: polResult ? "#e8f8ef" : "#fff4ec", borderRadius: "8px", fontSize: "14px", color: "#333" }}>
+            {polStatus}
+            {polResult && (
+              <div style={{ display: "flex", gap: "24px", marginTop: "12px" }}>
+                <div><strong style={{ color: "#12A854", fontSize: "20px" }}>{polResult.added}</strong> <span style={{ color: "#666", fontSize: "12px" }}>Added</span></div>
+                <div><strong style={{ color: "#FF6B00", fontSize: "20px" }}>{polResult.skipped}</strong> <span style={{ color: "#666", fontSize: "12px" }}>Updated</span></div>
+                <div><strong style={{ color: "#0D1B3E", fontSize: "20px" }}>{polResult.total}</strong> <span style={{ color: "#666", fontSize: "12px" }}>Total</span></div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      <button
-        onClick={runImport}
-        disabled={loading}
-        style={{ background: loading ? "#ccc" : "#FF6B00", color: "white", border: "none", padding: "16px 32px", borderRadius: "8px", fontSize: "16px", fontWeight: "700", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit", marginBottom: "24px" }}
-      >
-        {loading ? "Importing..." : "Run Import Now"}
-      </button>
-
-      {status && (
-        <div style={{ background: result ? "#e8f8ef" : "#fff4ec", border: `1px solid ${result ? "#12A854" : "#FF6B00"}`, borderRadius: "10px", padding: "20px" }}>
-          <div style={{ color: result ? "#12A854" : "#FF6B00", fontWeight: "700", marginBottom: "8px" }}>
-            {result ? "Import Complete" : "Status"}
-          </div>
-          <div style={{ color: "#333", fontSize: "14px" }}>{status}</div>
-          {result && (
-            <div style={{ marginTop: "16px", display: "flex", gap: "24px" }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "32px", fontWeight: "700", color: "#12A854" }}>{result.added}</div>
-                <div style={{ fontSize: "13px", color: "#666" }}>New added</div>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "32px", fontWeight: "700", color: "#FF6B00" }}>{result.skipped}</div>
-                <div style={{ fontSize: "13px", color: "#666" }}>Updated</div>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "32px", fontWeight: "700", color: "#0D1B3E" }}>{result.total}</div>
-                <div style={{ fontSize: "13px", color: "#666" }}>Total processed</div>
-              </div>
-            </div>
-          )}
+      {/* STEP 2 */}
+      <div style={{ background: "white", borderRadius: "16px", padding: "28px", border: "1px solid #eee", marginBottom: "24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+          <div style={{ background: "#FF6B00", color: "white", width: "28px", height: "28px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "14px", flexShrink: 0 }}>2</div>
+          <h2 style={{ fontFamily: "Georgia, serif", color: "#0D1B3E", margin: 0, fontSize: "20px" }}>Generate Promises with AI</h2>
         </div>
-      )}
+        <p style={{ color: "#666", fontSize: "14px", marginBottom: "20px", marginLeft: "40px" }}>Uses Groq AI to generate promises for politicians who have none yet. Run in batches to avoid rate limits.</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px", marginLeft: "40px" }}>
+          <label style={{ fontSize: "14px", color: "#555" }}>Batch size:</label>
+          {[3, 5, 10].map(n => (
+            <button key={n} onClick={() => setBatchSize(n)} style={{ padding: "6px 16px", borderRadius: "20px", border: "2px solid", borderColor: batchSize === n ? "#FF6B00" : "#eee", background: batchSize === n ? "#FF6B00" : "white", color: batchSize === n ? "white" : "#666", fontWeight: "600", cursor: "pointer", fontSize: "13px", fontFamily: "inherit" }}>{n}</button>
+          ))}
+        </div>
+        <button onClick={runPromiseImport} disabled={promiseLoading} style={{ background: promiseLoading ? "#ccc" : "#FF6B00", color: "white", border: "none", padding: "12px 28px", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: promiseLoading ? "not-allowed" : "pointer", fontFamily: "inherit", marginLeft: "40px" }}>
+          {promiseLoading ? "Generating..." : `Generate Promises for ${batchSize} Politicians`}
+        </button>
+        {promiseStatus && (
+          <div style={{ marginTop: "16px", marginLeft: "40px", padding: "16px", background: promiseResult ? "#e8f8ef" : "#fff4ec", borderRadius: "8px", fontSize: "14px", color: "#333" }}>
+            {promiseStatus}
+            {promiseResult && (
+              <div style={{ display: "flex", gap: "24px", marginTop: "12px" }}>
+                <div><strong style={{ color: "#12A854", fontSize: "20px" }}>{promiseResult.promises_added}</strong> <span style={{ color: "#666", fontSize: "12px" }}>Promises added</span></div>
+                <div><strong style={{ color: "#FF6B00", fontSize: "20px" }}>{promiseResult.processed}</strong> <span style={{ color: "#666", fontSize: "12px" }}>Politicians processed</span></div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div style={{ background: "#f8f8f8", borderRadius: "12px", padding: "20px", border: "1px solid #eee", fontSize: "13px", color: "#888", lineHeight: "1.8" }}>
+        <strong style={{ color: "#0D1B3E" }}>How to use:</strong><br/>
+        Run Step 1 once to import all politicians.<br/>
+        Run Step 2 in batches of 5 - each batch takes about 30 seconds.<br/>
+        Keep running Step 2 until all politicians have promises.<br/>
+        You can run both steps again anytime - they are safe and won&apos;t create duplicates.
+      </div>
     </div>
   );
 }
