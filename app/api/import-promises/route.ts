@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 const GROQ_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 async function generatePromises(politician: { id: string; name: string; party: string; role: string; state: string }) {
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
       const promises = await generatePromises(politician);
       
       if (promises.length === 0) continue;
-
+      await sleep(2000);
       // Insert promises
       for (const promise of promises) {
         await supabase.from("promises").insert({
