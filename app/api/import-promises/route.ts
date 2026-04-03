@@ -16,7 +16,7 @@ async function generatePromises(politician: { id: string; name: string; party: s
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "llama3-8b-8192",
+      model: "llama-3.1-8b-instant",
       messages: [{
         role: "user",
         content: `Generate 5 real political promises made by ${politician.name}, ${politician.role} from ${politician.party} party in ${politician.state}. 
